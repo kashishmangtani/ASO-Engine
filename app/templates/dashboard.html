@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="row" style="justify-content:space-between;margin-bottom:16px">
+  <div><h1>Clients</h1><div class="muted">Track how AI assistants talk about each brand.</div></div>
+</div>
+<div class="card small">
+  <b>Engines active:</b>
+  {% for e in engines %}<span class="pill good">{{ e }}</span> {% else %}<span class="pill bad">none – add API keys to .env</span>{% endfor %}
+  &nbsp; <b>AI strategist:</b> {% if ai_enabled %}<span class="pill good">on</span>{% else %}<span class="pill warn">add ANTHROPIC_API_KEY</span>{% endif %}
+</div>
+<div class="card">
+  <table>
+    <tr><th>Client</th><th>Domain</th><th>AI visibility</th><th>Share of voice</th><th>Citation rate</th><th>AI-readiness</th><th>Prompts</th></tr>
+    {% for c in clients %}
+    <tr>
+      <td><a href="/clients/{{ c.id }}"><b>{{ c.name }}</b></a><div class="small muted">{{ c.industry }}</div></td>
+      <td>{{ c.domain }}</td>
+      <td>{% if c.summary %}<b>{{ c.summary.visibility }}%</b>{% else %}<span class="muted">–</span>{% endif %}</td>
+      <td>{% if c.summary %}{{ c.summary.share_of_voice }}%{% else %}–{% endif %}</td>
+      <td>{% if c.summary %}{{ c.summary.citation_rate }}%{% else %}–{% endif %}</td>
+      <td>{% if c.audit_score is not none %}{{ c.audit_score }}/100{% else %}–{% endif %}</td>
+      <td>{{ c.prompt_count }}</td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="muted">No clients yet. Add your first one below.</td></tr>{% endfor %}
+  </table>
+</div>
+<div class="card">
+  <h2>Add a client</h2>
+  <form method="post" action="/clients">
+    <div class="grid">
+      <div><label>Client name</label><input name="name" required placeholder="Sunrise Dental Clinic"></div>
+      <div><label>Brand name (as people say it)</label><input name="brand" required placeholder="Sunrise Dental"></div>
+      <div><label>Website domain</label><input name="domain" required placeholder="sunrisedental.com"></div>
+      <div><label>Industry / category</label><input name="industry" placeholder="dental clinic in Austin"></div>
+    </div>
+    <label>Competitors (comma separated)</label><input name="competitors" placeholder="Bright Smiles, Austin Family Dentistry">
+    <label>Other names / aliases (comma separated)</label><input name="aliases" placeholder="Sunrise Dental Austin">
+    <p class="small muted">We'll pre-load 8 starter prompts based on the industry. You can edit them or let AI suggest more.</p>
+    <button class="btn">Create client</button>
+  </form>
+</div>
+{% endblock %}

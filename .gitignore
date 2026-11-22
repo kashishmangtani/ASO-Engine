@@ -1,0 +1,4 @@
+.env
+geo.db
+__pycache__/
+*.pyc

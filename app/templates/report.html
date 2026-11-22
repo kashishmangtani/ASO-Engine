@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name }} – AI Visibility Report{% endblock %}
+{% block body %}
+<div class="row noprint" style="justify-content:flex-end;margin-bottom:12px"><button class="btn" onclick="window.print()">Print / Save as PDF</button></div>
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <div><div class="muted small">AI SEARCH VISIBILITY REPORT</div><h1 style="font-size:30px">{{ c.name }}</h1>
+      <div class="muted">{{ c.domain }} · {% if run %}{{ run.started_at[:10] }}{% endif %}</div></div>
+    <div style="text-align:right"><div style="width:40px;height:40px;border-radius:10px;background:var(--brand);margin-left:auto"></div><b>{{ agency }}</b><div class="small muted">{{ agency_site }}</div></div>
+  </div>
+</div>
+{% if not run %}<div class="card">No completed visibility run yet.</div>{% else %}
+{% macro delta(key) %}{% if prev and prev[key] is not none and s[key] is not none %}{% set dlt = s[key] - prev[key] %}<span class="small {{ 'pill good' if dlt > 0 else 'pill bad' if dlt < 0 else 'pill' }}">{{ '+' if dlt > 0 }}{{ dlt }} pts</span>{% endif %}{% endmacro %}
+<div class="grid" style="margin-bottom:20px">
+  <div class="kpi"><div class="l">AI visibility</div><div class="v">{{ s.visibility }}%</div>{{ delta('visibility') }}</div>
+  <div class="kpi"><div class="l">Share of voice</div><div class="v">{{ s.share_of_voice }}%</div>{{ delta('share_of_voice') }}</div>
+  <div class="kpi"><div class="l">Citation rate</div><div class="v">{{ s.citation_rate }}%</div>{{ delta('citation_rate') }}</div>
+  <div class="kpi"><div class="l">AI-readiness score</div><div class="v">{{ a.score if a else '–' }}</div></div>
+</div>
+<div class="card"><h2>What this means</h2>
+  <p>We asked {{ engines|length }} AI assistants {{ per_prompt|length }} questions your customers ask. <b>{{ c.brand }}</b> appeared in <b>{{ s.visibility }}%</b> of answers
+  {% if s.avg_position %}at an average position of <b>{{ s.avg_position }}</b>{% endif %}, and the website was cited as a source in <b>{{ s.citation_rate }}%</b>.
+  {% set top = s.competitor_mentions.items()|list|first %}{% if top and top[1] > 0 %}The most visible competitor was <b>{{ top[0] }}</b> ({{ s.competitor_sov[top[0]] }}% share of voice).{% endif %}</p>
+</div>
+<div class="card"><h2>Visibility by AI engine</h2>
+  {% for e, v in s.by_engine.items() %}<div class="row" style="justify-content:space-between"><span>{{ e }}</span><b>{{ v.visibility }}%</b></div><div class="bar" style="margin-bottom:10px"><span style="width:{{ v.visibility }}%"></span></div>{% endfor %}
+</div>
+<div class="card"><h2>Prompt-by-prompt results</h2>
+<table><tr><th>Customer question</th>{% for e in engines %}<th>{{ e }}</th>{% endfor %}</tr>
+{% for p, v in per_prompt.items() %}<tr><td>{{ p }}</td>
+  {% for e in engines %}{% set r = v.engines.get(e) %}<td>{% if r and r.mentioned %}<span class="pill good">#{{ r.position or '✓' }}</span>{% if r.cited %} 🔗{% endif %}{% elif r %}<span class="pill bad">–</span>{% endif %}</td>{% endfor %}
+</tr>{% endfor %}</table>
+<p class="small muted">#N = rank in the answer · 🔗 = website cited as a source</p></div>
+{% endif %}
+{% if d %}<div class="card"><h2>Top website fixes</h2><table>
+  {% for ch in d.checks if not ch.passed %}<tr><td><b>{{ ch.name }}</b></td><td class="small">{{ ch.fix }}</td></tr>{% endfor %}
+</table></div>
+{% if a.ai_plan %}<div class="card plan"><h2>Strategy</h2>{{ a.ai_plan|markdown|safe }}</div>{% endif %}{% endif %}
+<p class="small muted" style="text-align:center">Prepared by {{ agency }}</p>
+{% endblock %}

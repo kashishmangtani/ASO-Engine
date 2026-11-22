@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<p><a href="/clients/{{ c.id }}">← {{ c.name }}</a></p>
+<div class="row" style="justify-content:space-between">
+  <div><h1>AI-readiness audit</h1><div class="muted">{{ d.url }} · {{ a.created_at }}</div></div>
+  <div class="score" style="color:{{ 'var(--good)' if a.score >= 75 else 'var(--warn)' if a.score >= 50 else 'var(--bad)' }}">{{ a.score }}<span class="muted" style="font-size:18px">/100</span></div>
+</div>
+{% if d.error %}<div class="card" style="color:var(--bad)">{{ d.error }}</div>{% endif %}
+<div class="card"><h2>Checks</h2>
+<table>
+  <tr><th></th><th>Check</th><th>Finding</th><th>How to fix</th></tr>
+  {% for ch in d.checks|sort(attribute='passed') %}
+  <tr><td>{% if ch.passed %}<span class="pill good">pass</span>{% else %}<span class="pill bad">fix</span>{% endif %}</td>
+    <td><b>{{ ch.name }}</b><div class="small muted">{{ ch.category }}</div></td>
+    <td class="small">{{ ch.detail }}</td><td class="small">{{ ch.fix }}</td></tr>
+  {% endfor %}
+</table></div>
+<div class="card"><h2>AI crawler access (robots.txt)</h2>
+  {% for bot, ok in d.bots.items() %}<span class="pill {{ 'good' if ok else 'bad' }}" style="margin:3px">{{ bot }}: {{ 'allowed' if ok else 'blocked' }}</span>{% endfor %}
+</div>
+<div class="card"><h2>llms.txt</h2>
+  <p class="small muted">A draft llms.txt built from this page's internal links. Edit the summary, then upload it to the site root.</p>
+  <a class="btn ghost" href="/audits/{{ a.id }}/llms.txt" target="_blank">Generate llms.txt</a>
+</div>
+<div class="card plan" id="plan"><h2>AI strategy & action plan</h2>
+  {% if a.ai_plan %}{{ a.ai_plan|markdown|safe }}
+  {% elif ai_enabled %}<form method="post" action="/audits/{{ a.id }}/plan" onsubmit="this.querySelector('button').textContent='Writing plan… (≈1 min)'"><button class="btn">✨ Generate action plan with Claude</button></form>
+  {% else %}<p class="muted">Add ANTHROPIC_API_KEY to .env to generate a tailored plan, content ideas and a ready-to-paste JSON-LD schema.</p>{% endif %}
+</div>
+{% endblock %}

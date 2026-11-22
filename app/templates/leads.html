@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Leads</h1>
+<p class="muted">People who ran the free check or contacted you from your website.</p>
+<div class="card">
+<table>
+  <tr><th>Date</th><th>Contact</th><th>Website</th><th>Source</th><th>Score</th><th>Message</th><th>Status</th><th></th></tr>
+  {% for l in leads %}
+  <tr>
+    <td class="small">{{ l.created_at[:16] }}</td>
+    <td><b>{{ l.name or '–' }}</b><div class="small"><a href="mailto:{{ l.email }}">{{ l.email }}</a></div></td>
+    <td class="small">{{ l.website }}</td>
+    <td><span class="pill">{{ l.source }}</span></td>
+    <td>{% if l.score is not none %}<a href="/check/{{ l.token }}" target="_blank"><span class="pill {{ 'good' if l.score >= 75 else 'warn' if l.score >= 50 else 'bad' }}">{{ l.score }}/100</span></a>{% else %}–{% endif %}</td>
+    <td class="small" style="max-width:260px">{{ l.message }}</td>
+    <td><form method="post" action="/app/leads/{{ l.id }}/status"><select name="status" onchange="this.form.submit()">
+      {% for s in ['new','contacted','proposal','client','lost'] %}<option {{ 'selected' if l.status == s }}>{{ s }}</option>{% endfor %}</select></form></td>
+    <td>{% if l.status != 'client' %}<form method="post" action="/app/leads/{{ l.id }}/convert"><button class="btn ghost" style="padding:4px 10px;font-size:13px">→ Client</button></form>{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="8" class="muted">No leads yet. Share your landing page!</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

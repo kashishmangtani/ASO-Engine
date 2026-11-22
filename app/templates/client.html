@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name }} · {{ agency }}{% endblock %}
+{% block body %}
+{% if running %}<meta http-equiv="refresh" content="6">{% endif %}
+<div class="row" style="justify-content:space-between;margin-bottom:16px">
+  <div><h1>{{ c.name }}</h1><div class="muted">{{ c.brand }} · <a href="https://{{ c.domain }}" target="_blank" rel="noopener">{{ c.domain }}</a> · {{ c.industry }}</div></div>
+  <div class="row">
+    <form method="post" action="/clients/{{ c.id }}/run"><button class="btn" {% if running %}disabled{% endif %}>{% if running %}Running…{% else %}▶ Run AI visibility check{% endif %}</button></form>
+    <a class="btn ghost" href="/clients/{{ c.id }}/report" target="_blank">Client report</a>
+  </div>
+</div>
+
+{% if latest %}{% set s = latest.s %}
+<div class="grid" style="margin-bottom:20px">
+  <div class="kpi"><div class="l">AI visibility</div><div class="v">{{ s.visibility }}%</div><div class="small muted">answers mentioning the brand</div></div>
+  <div class="kpi"><div class="l">Share of voice</div><div class="v">{{ s.share_of_voice }}%</div><div class="small muted">vs. tracked competitors</div></div>
+  <div class="kpi"><div class="l">Citation rate</div><div class="v">{{ s.citation_rate }}%</div><div class="small muted">answers linking to {{ c.domain }}</div></div>
+  <div class="kpi"><div class="l">Avg. position</div><div class="v">{{ s.avg_position or '–' }}</div><div class="small muted">rank when mentioned</div></div>
+</div>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+  <div class="card"><h2>By AI engine</h2>
+    {% for e, v in s.by_engine.items() %}
+      <div class="row" style="justify-content:space-between"><span>{{ e }}</span><b>{{ v.visibility }}%</b></div>
+      <div class="bar" style="margin-bottom:12px"><span style="width:{{ v.visibility }}%"></span></div>
+    {% endfor %}
+  </div>
+  <div class="card"><h2>Share of voice</h2>
+    <div class="row" style="justify-content:space-between"><b>{{ c.brand }}</b><b>{{ s.share_of_voice }}%</b></div>
+    <div class="bar" style="margin-bottom:12px"><span style="width:{{ s.share_of_voice }}%"></span></div>
+    {% for comp, v in s.competitor_sov.items() %}
+      <div class="row" style="justify-content:space-between"><span>{{ comp }}</span><span>{{ v }}%</span></div>
+      <div class="bar" style="margin-bottom:12px"><span style="width:{{ v }}%;background:#9aa3b8"></span></div>
+    {% endfor %}
+  </div>
+</div>
+{% if trend|length > 1 %}
+<div class="card"><h2>Visibility trend</h2>
+  <div class="row" style="align-items:flex-end;gap:6px;height:140px">
+    {% for t in trend %}<div style="flex:1;text-align:center"><div class="small"><b>{{ t.v }}%</b></div><div style="height:{{ t.v or 1 }}px;max-height:100px;background:var(--brand);border-radius:4px 4px 0 0"></div><div class="small muted">{{ t.date[5:] }}</div></div>{% endfor %}
+  </div>
+</div>
+{% endif %}
+{% elif not running %}
+<div class="card">No visibility data yet. Click <b>Run AI visibility check</b> to ask every AI engine your tracked prompts.</div>
+{% endif %}
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(420px,1fr))">
+<div class="card" id="prompts"><h2>Tracked prompts ({{ prompts|length }})</h2>
+  <table>{% for p in prompts %}
+    <tr><td>{{ p.text }} {% if p.category == 'ai-suggested' %}<span class="pill">AI</span>{% endif %}</td>
+      <td style="width:40px"><form method="post" action="/prompts/{{ p.id }}/delete"><button class="btn ghost small" style="padding:2px 8px" title="Remove">✕</button></form></td></tr>
+  {% endfor %}</table>
+  <form method="post" action="/clients/{{ c.id }}/prompts" style="margin-top:12px">
+    <label>Add prompts (one per line)</label><textarea name="text" rows="3" placeholder="best dentist for kids in Austin"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn">Add</button></div>
+  </form>
+  {% if ai_enabled %}<form method="post" action="/clients/{{ c.id }}/prompts/suggest" style="margin-top:8px"><button class="btn ghost">✨ Suggest 15 prompts with AI</button></form>{% endif %}
+</div>
+
+<div class="card"><h2>AI-readiness audit</h2>
+  <form method="post" action="/clients/{{ c.id }}/audit" class="row">
+    <input name="url" placeholder="https://{{ c.domain }} (or any page)" style="flex:1"><button class="btn">Audit page</button>
+  </form>
+  <table style="margin-top:12px">{% for a in audits %}
+    <tr><td><a href="/audits/{{ a.id }}">{{ a.url }}</a><div class="small muted">{{ a.created_at }}</div></td>
+    <td><span class="pill {{ 'good' if a.score >= 75 else 'warn' if a.score >= 50 else 'bad' }}">{{ a.score }}/100</span></td></tr>
+  {% else %}<tr><td class="muted">No audits yet.</td></tr>{% endfor %}</table>
+  <h3>Run history</h3>
+  <table>{% for r in runs %}
+    <tr><td><a href="/runs/{{ r.id }}">Run #{{ r.id }}</a> <span class="small muted">{{ r.started_at }}</span></td>
+      <td>{% if r.status == 'done' %}<b>{{ r.s.visibility }}%</b> visible{% else %}<span class="pill {{ 'bad' if r.status=='failed' else 'warn' }}">{{ r.status }}</span>{% endif %}</td></tr>
+  {% else %}<tr><td class="muted">No runs yet.</td></tr>{% endfor %}</table>
+</div>
+</div>
+
+<details class="card"><summary><b>Edit client settings</b></summary>
+  <form method="post" action="/clients/{{ c.id }}/edit">
+    <div class="grid">
+      <div><label>Client name</label><input name="name" value="{{ c.name }}"></div>
+      <div><label>Brand</label><input name="brand" value="{{ c.brand }}"></div>
+      <div><label>Domain</label><input name="domain" value="{{ c.domain }}"></div>
+      <div><label>Industry</label><input name="industry" value="{{ c.industry }}"></div>
+    </div>
+    <label>Competitors</label><input name="competitors" value="{{ c.competitors }}">
+    <label>Aliases</label><input name="aliases" value="{{ c.aliases }}">
+    <div class="row" style="margin-top:12px"><button class="btn">Save</button></div>
+  </form>
+  <form method="post" action="/clients/{{ c.id }}/delete" onsubmit="return confirm('Delete this client and all data?')" style="margin-top:12px"><button class="btn danger">Delete client</button></form>
+</details>
+{% endblock %}

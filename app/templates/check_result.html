@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Your AI-Readiness Score · {{ agency }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>{% include "_site.css" %}</style>
+</head>
+<body>
+<nav class="topnav"><div class="wrap nav-inner"><a href="/" class="brand"><span class="logo"></span>{{ agency }}</a>
+  <div class="links"><a href="/#pricing">Pricing</a><a href="/#contact" class="btn sm">Talk to us</a></div></div></nav>
+
+<section class="section"><div class="wrap narrow">
+  <div class="center">
+    <span class="eyebrow">Free AI visibility check</span>
+    <h1 style="font-size:clamp(28px,4vw,42px)">{{ lead.name or d.url }}</h1>
+    <p class="muted">{{ d.url }}</p>
+  </div>
+
+  {% if d.error %}
+    <div class="card center" style="margin-top:30px">
+      <h3>We couldn't analyse that website</h3>
+      <p class="muted">{{ d.error }}. Check the address and <a href="/#check">try again</a>, or <a href="/#contact">contact us</a> and we'll take a look manually.</p>
+    </div>
+  {% else %}
+  {% set sc = d.score %}{% set col = 'var(--good)' if sc >= 75 else 'var(--warn)' if sc >= 50 else 'var(--bad)' %}
+  <div style="margin:36px 0" class="center">
+    <div class="score-ring" style="--p:{{ sc }};--c:{{ col }}"><div><div><b style="color:{{ col }}">{{ sc }}</b><br><small>out of 100</small></div></div></div>
+    <h2 style="margin-top:22px;font-size:26px">
+      {% if sc >= 75 %}Strong foundation, now it's about visibility
+      {% elif sc >= 50 %}Good start, with important gaps
+      {% else %}AI assistants will struggle to recommend you{% endif %}
+    </h2>
+    <p class="muted">You passed <b>{{ passed }}</b> of {{ d.checks|length }} AI-readiness checks.
+      {% set blocked = d.bots.items()|selectattr(1, 'equalto', false)|map(attribute=0)|list %}
+      {% if blocked %}<br><b style="color:var(--bad)">Your site blocks {{ blocked|length }} AI crawler{{ 's' if blocked|length > 1 }}</b> ({{ blocked|join(', ') }}).{% endif %}
+    </p>
+  </div>
+
+  <h2 style="font-size:24px">Your top priorities</h2>
+  {% for c in failed[:3] %}
+    <div class="issue"><span class="tag">{{ c.category }}</span><h3>{{ c.name }}</h3><p><b>Found:</b> {{ c.detail }}</p><p><b>Fix:</b> {{ c.fix }}</p></div>
+  {% else %}
+    <div class="issue"><h3>🎉 No technical issues found</h3><p>Your site is technically ready. The next step is finding out whether AI actually recommends you over your competitors.</p></div>
+  {% endfor %}
+
+  {% if failed|length > 3 %}
+  <div class="unlock">
+    <div class="locked">{% for c in failed[3:6] %}<div class="issue"><span class="tag">{{ c.category }}</span><h3>{{ c.name }}</h3><p>{{ c.fix }}</p></div>{% endfor %}</div>
+    <div class="over"><div class="card center">
+      <h3>+{{ failed|length - 3 }} more issues found</h3>
+      <p class="muted">Get the full report, plus a test of what ChatGPT, Gemini and Perplexity actually say about you versus your competitors.</p>
+      <a class="btn block" style="margin-top:14px" href="{{ booking_url or '/#contact' }}">Get my full AI visibility report</a>
+    </div></div>
+  </div>
+  {% endif %}
+
+  <div class="card" style="margin-top:36px;background:var(--alt)">
+    <h3>This was the technical check. What does AI actually say about you?</h3>
+    <p class="muted">A website can be technically perfect and still never get mentioned. Our AI Search Audit asks ChatGPT, Claude, Gemini and Perplexity the questions your customers ask, and shows who they recommend instead of you.</p>
+    <a class="btn" href="{{ booking_url or '/#contact' }}" style="margin-top:12px">Book my AI Search Audit</a>
+    <a class="btn ghost" href="/#pricing" style="margin-top:12px">See pricing</a>
+  </div>
+  {% endif %}
+</div></section>
+<footer class="footer"><div class="wrap row-between"><div class="brand"><span class="logo"></span>{{ agency }}</div><div class="muted small">AI search optimisation</div></div></footer>
+</body></html>
