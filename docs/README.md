@@ -13,8 +13,8 @@ All business, product and go-to-market documents for the platform. Keep them upd
 | 07 | [LinkedIn lead-generation engine](07-linkedin-lead-gen-engine.md) | Spec for the future LinkedIn lead-gen system | Spec (not built) |
 | 08 | [Sales playbook](08-sales-playbook.md) | Discovery call, demo, proposal, objection handling | Draft |
 | 09 | [Client delivery SOP](09-client-delivery-sop.md) | Onboarding and monthly delivery process using the platform | Draft |
-| 11 | [USP & differentiation](11-usp-and-differentiation.md) | The unique selling point ("Cited, Correct & Converting"), how to deliver it, build plan | **To confirm** |
 | 10 | [Decisions log](10-decisions-log.md) | Decisions made and open questions | Living |
+| 11 | [USP & differentiation](11-usp-and-differentiation.md) | The unique selling point ("Cited, Correct & Converting"), how to deliver it, build plan | **To confirm** |
 
 ## Conventions
 - Anything marked **TBD** is waiting on a decision. Once it's decided, update the document and add a row to the decisions log.
