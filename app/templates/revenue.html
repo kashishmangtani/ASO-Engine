@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}AI Revenue · {{ c.name }}{% endblock %}
+{% block body %}
+<p><a href="/clients/{{ c.id }}">← {{ c.name }}</a></p>
+<div class="row" style="justify-content:space-between;margin-bottom:12px">
+  <div><h1>AI Revenue Report</h1>
+    <div class="muted">Visits, leads and sales that AI assistants send to <b>{{ c.brand }}</b>.</div></div>
+  <form method="get" class="row">
+    <select name="month" onchange="this.form.submit()" style="width:auto">
+      {% for m in month_options|reverse %}<option value="{{ m }}" {{ 'selected' if m == month }}>{{ m }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+{% if msg %}<div class="card small" style="border-color:var(--brand)">{{ msg }}</div>{% endif %}
+
+<div class="grid" style="margin-bottom:20px">
+  <div class="kpi"><div class="l">Visits from AI</div><div class="v">{{ s.ai_visits }}</div><div class="small muted">sessions arriving from AI assistants</div></div>
+  <div class="kpi"><div class="l">Leads from AI</div><div class="v">{{ s.total_ai_leads }}</div><div class="small muted">{{ s.ai_leads }} tracked{% if s.self_reported %} + {{ s.self_reported }} self-reported{% endif %}</div></div>
+  <div class="kpi"><div class="l">Share of all leads</div><div class="v">{{ s.ai_lead_share if s.ai_lead_share is not none else '–' }}{% if s.ai_lead_share is not none %}%{% endif %}</div><div class="small muted">of {{ s.all_leads }} tracked leads</div></div>
+  <div class="kpi"><div class="l">AI visit → lead</div><div class="v">{{ s.ai_conversion if s.ai_conversion is not none else '–' }}{% if s.ai_conversion is not none %}%{% endif %}</div><div class="small muted">conversion rate</div></div>
+  <div class="kpi"><div class="l">Customers won</div><div class="v">{{ s.customers if s.customers is not none else '–' }}</div><div class="small muted">from AI leads (entered below)</div></div>
+  <div class="kpi"><div class="l">Revenue from AI</div><div class="v">{% if s.revenue is not none %}{{ currency }}{{ '{:,.0f}'.format(s.revenue) }}{% else %}–{% endif %}</div><div class="small muted">entered below</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+  <div class="card"><h2>By AI assistant</h2>
+    <table><tr><th>Assistant</th><th>Visits</th><th>Leads</th><th>Conversion</th></tr>
+      {% for r in s.by_source %}<tr><td>{{ r.source }}</td><td>{{ r.visits }}</td><td><b>{{ r.leads }}</b></td><td>{{ r.conversion if r.conversion is not none else '–' }}{% if r.conversion is not none %}%{% endif %}</td></tr>
+      {% else %}<tr><td colspan="4" class="muted">No AI traffic recorded this month.</td></tr>{% endfor %}
+    </table>
+  </div>
+  <div class="card"><h2>Top pages AI sends people to</h2>
+    <table>{% for p in s.top_pages %}<tr><td><code>{{ p.path }}</code></td><td style="text-align:right">{{ p.n }} visits</td></tr>
+      {% else %}<tr><td class="muted">No AI visits recorded this month.</td></tr>{% endfor %}</table>
+  </div>
+</div>
+
+<div class="card"><h2>Last 6 months</h2>
+  <div class="row" style="align-items:flex-end;gap:10px;height:170px">
+    {% for m in months %}
+    <div style="flex:1;text-align:center">
+      <div class="small"><b>{{ m.total_ai_leads }}</b> leads</div>
+      <div style="height:{{ (110 * m.ai_visits / max_visits)|round|int or 1 }}px;background:var(--brand);border-radius:4px 4px 0 0;opacity:.85" title="{{ m.ai_visits }} AI visits"></div>
+      <div class="small muted">{{ m.month }}</div><div class="small muted">{{ m.ai_visits }} visits</div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="small muted">Bars show visits from AI assistants; the number above each bar is leads from AI (tracked + self-reported).</p>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(420px,1fr))">
+<div class="card"><h2>Results for {{ month }} (from the client)</h2>
+  <p class="small muted">The tracking script can't see phone calls or closed deals. Ask the client each month and record them here.</p>
+  <form method="post" action="/clients/{{ c.id }}/revenue">
+    <input type="hidden" name="month" value="{{ month }}">
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div><label>Customers won from AI leads</label><input name="customers" inputmode="numeric" value="{{ s.customers if s.customers is not none else '' }}"></div>
+      <div><label>Revenue from those customers ({{ currency }})</label><input name="revenue_amount" inputmode="decimal" value="{{ ('{:f}'.format(s.revenue).rstrip('0').rstrip('.')) if s.revenue is not none else '' }}"></div>
+    </div>
+    <label>Self-reported AI leads <span class="muted">("How did you hear about us?" → ChatGPT etc., phone calls)</span></label>
+    <input name="self_reported" inputmode="numeric" value="{{ s.self_reported or '' }}">
+    <label>Notes</label><textarea name="notes" rows="2">{{ s.notes }}</textarea>
+    <div class="row" style="margin-top:10px"><button class="btn">Save</button></div>
+  </form>
+</div>
+
+<div class="card"><h2>Install the tracking script</h2>
+  <p class="small">Add this one line to every page of {{ c.domain }}, just before <code>&lt;/head&gt;</code>. In WordPress use a header plugin; in Shopify, Webflow or Wix use the custom code setting.</p>
+  <pre id="snippet">{{ snippet }}</pre>
+  <button class="btn ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('snippet').innerText);this.textContent='Copied ✓'">Copy code</button>
+  <p class="small" style="margin-top:12px"><b>Status:</b>
+    {% if last %}<span class="pill good">receiving data</span> last event {{ last.created_at }} ({{ last.type }}, {{ last.source }})
+    {% else %}<span class="pill warn">no data yet</span> Once installed, visit the site from a ChatGPT link to test it.{% endif %}</p>
+  <details class="small"><summary>What it tracks, and booking widgets</summary>
+    <ul>
+      <li>Visits that arrive from ChatGPT, Perplexity, Gemini, Copilot, Claude, DeepSeek, Grok or Meta AI (by referrer or <code>utm_source</code>).</li>
+      <li>Form submissions that include an email, phone or message field count as leads. A lead is credited to the AI assistant the visitor came from in the last 30 days, otherwise to "other".</li>
+      <li>No names, emails, form contents or IP addresses are collected. The source is remembered in the visitor's browser for 30 days. In the EU/UK, mention this in the client's cookie notice.</li>
+      <li>Booking widgets or phone links that aren't normal forms: call <code>window.asoLead()</code> when a booking completes. Add <code>data-aso-ignore</code> to a form to skip it.</li>
+      <li>Google AI Overviews can't be told apart from normal Google search traffic.</li>
+    </ul>
+  </details>
+  {% if demo_mode %}
+  <div class="row" style="margin-top:12px">
+    <form method="post" action="/clients/{{ c.id }}/revenue/demo"><input type="hidden" name="action" value="add"><button class="btn ghost">Load demo data</button></form>
+    {% if has_demo %}<form method="post" action="/clients/{{ c.id }}/revenue/demo"><input type="hidden" name="action" value="clear"><button class="btn ghost">Clear demo data</button></form>{% endif %}
+  </div>
+  {% endif %}
+</div>
+</div>
+{% endblock %}

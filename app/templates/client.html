@@ -55,6 +55,15 @@
   <a class="btn {{ 'ghost' if fc else '' }}" href="/clients/{{ c.id }}/facts">{{ 'Open Fact-Check' if fc else 'Set up Fact-Check' }}</a>
 </div>
 
+<div class="card row" style="justify-content:space-between">
+  <div><h2 style="margin:0 0 4px">AI Revenue Report</h2>
+    {% if rev_last %}<span class="muted">This month: </span><b style="font-size:20px">{{ rev.total_ai_leads }} lead{{ '' if rev.total_ai_leads == 1 else 's' }} from AI</b>
+      <span class="muted"> · {{ rev.ai_visits }} AI visits{% if rev.ai_lead_share is not none %} · {{ rev.ai_lead_share }}% of all leads{% endif %}</span>
+    {% else %}<span class="muted">Track the visits, leads and revenue AI assistants send this client. Needs a one-line script on their site.</span>{% endif %}
+  </div>
+  <a class="btn {{ 'ghost' if rev_last else '' }}" href="/clients/{{ c.id }}/revenue">{{ 'Open AI Revenue' if rev_last else 'Set up AI Revenue' }}</a>
+</div>
+
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(420px,1fr))">
 <div class="card" id="prompts"><h2>Tracked prompts ({{ prompts|length }})</h2>
   <table>{% for p in prompts %}

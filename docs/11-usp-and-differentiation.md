@@ -61,7 +61,7 @@ Most providers stop at *"Are you mentioned?"* We cover the whole path from AI an
 | AI Fact-Check (brand prompts + fact sheet + Claude grading + accuracy score) | ✅ **Built** (`app/factcheck.py`, `/clients/{id}/facts`) | `engines.py` |
 | Real-customer prompt import (CSV/Search Console paste, AI clustering) | Small | `prompts` table, `advisor.py` |
 | Buyer-journey simulation (multi-step conversations, drop-off point) | Medium | `engines.py` (multi-message), `analyzer.py` |
-| AI Revenue Report (referrer + form-source tracking snippet, report section) | Medium | `report.html`, new tracking endpoint |
+| AI Revenue Report (referrer + form-source tracking snippet, report section) | ✅ **Built** (`app/revenue.py`, `/clients/{id}/revenue`) | `report.html` |
 | Agent/conversion readiness checks | Medium | `auditor.py` |
 
 **Suggested order:** Fact-Check first (fastest to build, strongest sales hook) → Revenue Report → Journey simulation → Agent readiness.
