@@ -80,6 +80,29 @@ CREATE TABLE IF NOT EXISTS factcheck_results (
     wrong_claims TEXT DEFAULT '[]',
     error TEXT
 );
+CREATE TABLE IF NOT EXISTS tracking_sites (
+    client_id INTEGER PRIMARY KEY REFERENCES clients(id) ON DELETE CASCADE,
+    site_key TEXT UNIQUE NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ai_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    source TEXT NOT NULL,
+    path TEXT,
+    is_demo INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ai_events_client_time ON ai_events (client_id, created_at);
+CREATE TABLE IF NOT EXISTS ai_revenue (
+    client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    month TEXT NOT NULL,
+    customers INTEGER,
+    revenue REAL,
+    self_reported INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '',
+    PRIMARY KEY (client_id, month)
+);
 CREATE TABLE IF NOT EXISTS leads (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     token TEXT UNIQUE,

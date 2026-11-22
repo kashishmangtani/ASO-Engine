@@ -46,6 +46,7 @@
 | `app/tracker.py` | Runs every prompt × engine in parallel and stores the results |
 | `app/auditor.py` | AI-readiness audit (17 checks) and llms.txt generator |
 | `app/factcheck.py` | AI Fact-Check: ask brand questions, grade answers against the fact sheet with Claude (structured JSON output), accuracy score, error sources |
+| `app/revenue.py` + `app/static/t.js` | AI Revenue Report: anonymous tracking script (AI referrer/UTM detection, 30-day attribution, form leads), event endpoint `/t/{key}`, monthly summaries, manual customer/revenue entries |
 | `app/advisor.py` | Claude-written action plans and prompt suggestions |
 | `app/templates/` | `landing.html`, `check_result.html`, `_site.css` (public); `base.html`, `dashboard.html`, `client.html`, `run.html`, `audit.html`, `report.html`, `leads.html` (admin) |
 | `run_all.py` | Cron entry point for weekly runs |
@@ -60,6 +61,7 @@
 | `audits` | client_id, url, score, data (JSON), ai_plan |
 | `facts` | client_id, question, answer (the client-approved fact sheet) |
 | `factcheck_runs` / `factcheck_results` | per question × engine: answer, citations, verdict, explanation, wrong_claims |
+| `tracking_sites` / `ai_events` / `ai_revenue` | per-client site key; events (type visit/lead, AI source, path, no personal data); monthly customers, revenue, self-reported leads |
 | `leads` | token, name, email, website, message, source, score, audit_data, status |
 
 ## Metrics definitions
@@ -71,6 +73,8 @@
 | Average position | Mean rank of the brand in list-style answers (or order of first mention) |
 | Sentiment | Keyword-based positive/neutral/negative for sentences mentioning the brand |
 | AI Accuracy Score | (correct + ½ × partly correct) ÷ answers that stated facts; "I don't know" answers are excluded and reported as coverage |
+| AI leads | Tracked form leads attributed to an AI assistant (last 30 days) + self-reported AI leads |
+| AI share of leads | Tracked AI leads ÷ all tracked leads |
 | AI-readiness score | Weighted pass rate of 17 audit checks (0–100) |
 
 ## Environment variables
@@ -95,6 +99,7 @@ Requirements: HTTPS, a persistent disk for the SQLite file, a daily backup of th
 - Rate limits: 5 free checks and 10 contact messages per IP per hour (in memory; this resets on restart).
 - Admin pages require Basic Auth when `ADMIN_PASSWORD` is set. Always set it in production.
 - Never commit `.env` (it's in `.gitignore`).
+- Tracking endpoint: rejects unknown site keys and requests whose `Origin` isn't the client's domain; validates event types and sources; 600 events per IP per hour; stores no IPs or form contents.
 
 ## Known limitations
 - AI answers vary between runs, so judge trends over several runs.

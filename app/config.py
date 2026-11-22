@@ -80,3 +80,7 @@ PRICING = [
         "cta": "Talk to us", "featured": False,
     },
 ]
+
+# Public address of this platform, used in the tracking snippet (e.g. https://app.youragency.com).
+# If blank, the address the dashboard is opened on is used.
+PUBLIC_URL = os.getenv("PUBLIC_URL", "").rstrip("/")

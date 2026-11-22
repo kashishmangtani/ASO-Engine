@@ -6,14 +6,15 @@ import secrets
 import time
 from collections import defaultdict, deque
 from pathlib import Path
+from urllib.parse import urlparse
 
 from markdown_it import MarkdownIt
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
-from . import advisor, config, factcheck
+from . import advisor, config, factcheck, revenue
 from .auditor import audit as run_audit, generate_llms_txt
 from .db import get_db, init_db, loads, split_list
 from .engines import available_engines
@@ -110,12 +111,15 @@ def client_page(request: Request, cid: int):
         fc_run, fc = factcheck.latest_summary(db, cid)
         fc_running = db.execute("SELECT 1 FROM factcheck_runs WHERE client_id=? AND status='running'", (cid,)).fetchone()
         fact_count = db.execute("SELECT COUNT(*) FROM facts WHERE client_id=?", (cid,)).fetchone()[0]
+        rev = revenue.month_summary(db, cid, revenue.current_month())
+        rev_last = revenue.last_event(db, cid)
     latest = next((r for r in runs if r["status"] == "done"), None)
     trend = [{"date": r["started_at"][:10], "v": r["s"].get("visibility", 0)} for r in reversed(runs) if r["status"] == "done"]
     return templates.TemplateResponse(request, "client.html", {
         "c": c, "prompts": prompts, "runs": runs, "audits": audits, "latest": latest, "trend": trend,
         "running": any(r["status"] == "running" for r in runs), "ai_enabled": advisor.enabled(),
-        "fc_run": fc_run, "fc": fc, "fc_running": bool(fc_running), "fact_count": fact_count})
+        "fc_run": fc_run, "fc": fc, "fc_running": bool(fc_running), "fact_count": fact_count,
+        "rev": rev, "rev_last": rev_last})
 
 
 @app.post("/clients/{cid}/edit", dependencies=[Depends(auth)])
@@ -247,6 +251,10 @@ def report(request: Request, cid: int):
         fc_wrong = [dict(r) | {"claims": loads(r["wrong_claims"], [])} for r in db.execute(
             "SELECT * FROM factcheck_results WHERE run_id=? AND verdict IN ('incorrect','outdated') ORDER BY question, engine",
             (fc_run["id"],))] if fc_run else []
+    with get_db() as db:
+        rev_trend = revenue.trend(db, cid, 6)
+    rev = rev_trend[-1] if any(m["ai_visits"] or m["ai_leads"] or m["customers"] for m in rev_trend[-1:]) \
+        else next((m for m in reversed(rev_trend) if m["ai_visits"] or m["ai_leads"] or m["customers"]), None)
     per_prompt: dict[str, dict] = {}
     for r in results:
         p = per_prompt.setdefault(r["prompt_text"], {"engines": {}, "mentioned": 0})
@@ -256,7 +264,8 @@ def report(request: Request, cid: int):
         "c": c, "run": run, "s": s or {}, "prev": loads(prev["summary"], {}) if prev else None,
         "a": dict(a) if a else None, "d": loads(a["data"], {}) if a else None,
         "per_prompt": per_prompt, "engines": sorted({r["engine"] for r in results}),
-        "fc_run": fc_run, "fc": fc, "fc_wrong": fc_wrong, "labels": factcheck.VERDICT_LABELS})
+        "fc_run": fc_run, "fc": fc, "fc_wrong": fc_wrong, "labels": factcheck.VERDICT_LABELS,
+        "rev": rev, "rev_trend": rev_trend})
 
 
 # ---------------------------------------------------------------- AI Fact-Check
@@ -366,12 +375,12 @@ def factcheck_page(request: Request, rid: int):
 
 # ================================================================ public website
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-_hits: dict[str, deque] = defaultdict(deque)
+_hits: dict[tuple[str, str], deque] = defaultdict(deque)
 
 
-def _rate_limited(request: Request, limit: int = 5, window: int = 3600) -> bool:
+def _rate_limited(request: Request, limit: int = 5, window: int = 3600, bucket: str = "check") -> bool:
     ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
-    q, now = _hits[ip], time.time()
+    q, now = _hits[(bucket, ip)], time.time()
     while q and now - q[0] > window:
         q.popleft()
     if len(q) >= limit:
@@ -420,7 +429,7 @@ def contact(request: Request, email: str = Form(...), name: str = Form(""), webs
             message: str = Form(""), plan: str = Form("")):
     if not EMAIL_RE.match(email.strip()):
         return RedirectResponse("/?error=Please+enter+a+valid+email&where=contact#contact", 303)
-    if _rate_limited(request, limit=10):
+    if _rate_limited(request, limit=10, bucket="contact"):
         return RedirectResponse("/?error=Too+many+messages+-+please+try+again+later&where=contact#contact", 303)
     with get_db() as db:
         db.execute("INSERT INTO leads (token, name, email, website, message, source) VALUES (?,?,?,?,?,?)",
@@ -456,3 +465,100 @@ def lead_convert(lid: int):
         cid = db.execute("INSERT INTO clients (name, brand, domain) VALUES (?,?,?)", (brand, brand, domain)).lastrowid
         db.execute("UPDATE leads SET status='client' WHERE id=?", (lid,))
     return RedirectResponse(f"/clients/{cid}", 303)
+
+
+# ================================================================ AI Revenue Report
+MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+STATIC = BASE / "static"
+
+
+def _num(v: str, cast):
+    v = (v or "").replace(",", "").strip()
+    if not v:
+        return None
+    try:
+        n = cast(float(v))
+    except ValueError:
+        return None
+    return n if n >= 0 else None
+
+
+@app.get("/t.js")
+def tracking_script():
+    return Response((STATIC / "t.js").read_text(), media_type="application/javascript",
+                    headers={"Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*"})
+
+
+@app.options("/t/{key}")
+def tracking_preflight(key: str):
+    return Response(status_code=204, headers={"Access-Control-Allow-Origin": "*",
+                                              "Access-Control-Allow-Methods": "POST",
+                                              "Access-Control-Allow-Headers": "Content-Type"})
+
+
+@app.post("/t/{key}")
+async def tracking_event(request: Request, key: str):
+    headers = {"Access-Control-Allow-Origin": "*"}
+    if _rate_limited(request, limit=600, bucket="track"):
+        return Response(status_code=429, headers=headers)
+    body = (await request.body())[:2048]
+    try:
+        payload = json.loads(body or b"{}")
+    except ValueError:
+        return Response(status_code=400, headers=headers)
+    if not isinstance(payload, dict):
+        return Response(status_code=400, headers=headers)
+    with get_db() as db:
+        c = revenue.client_for_key(db, key[:64])
+        if not c:
+            return Response(status_code=404, headers=headers)
+        origin = request.headers.get("origin", "")
+        if origin and origin != "null":
+            host = (urlparse(origin).hostname or "").removeprefix("www.")
+            dom = c["domain"].split("/")[0].split(":")[0].removeprefix("www.")
+            if host != dom and not host.endswith("." + dom):
+                return Response(status_code=403, headers=headers)
+        revenue.record_event(db, c["id"], payload)
+    return Response(status_code=204, headers=headers)
+
+
+@app.get("/clients/{cid}/revenue", response_class=HTMLResponse, dependencies=[Depends(auth)])
+def revenue_page(request: Request, cid: int, month: str = "", msg: str = ""):
+    month = month if MONTH_RE.match(month) else revenue.current_month()
+    with get_db() as db:
+        c = _client(db, cid)
+        key = revenue.site_key(db, cid)
+        summary = revenue.month_summary(db, cid, month)
+        months = revenue.trend(db, cid, 6, month)
+        last = revenue.last_event(db, cid)
+        has_demo = db.execute("SELECT 1 FROM ai_events WHERE client_id=? AND is_demo=1 LIMIT 1", (cid,)).fetchone()
+    base = config.PUBLIC_URL or str(request.base_url).rstrip("/")
+    snippet = f'<script async src="{base}/t.js" data-key="{key}"></script>'
+    return templates.TemplateResponse(request, "revenue.html", {
+        "c": c, "s": summary, "months": months, "snippet": snippet, "last": last, "msg": msg[:200],
+        "month": month, "month_options": revenue.last_months(12), "demo_mode": config.DEMO_MODE,
+        "has_demo": bool(has_demo), "max_visits": max([m["ai_visits"] for m in months] + [1])})
+
+
+@app.post("/clients/{cid}/revenue", dependencies=[Depends(auth)])
+def save_revenue(cid: int, month: str = Form(...), customers: str = Form(""), revenue_amount: str = Form(""),
+                 self_reported: str = Form(""), notes: str = Form("")):
+    if not MONTH_RE.match(month):
+        raise HTTPException(400, "Invalid month")
+    with get_db() as db:
+        _client(db, cid)
+        revenue.save_manual(db, cid, month, _num(customers, int), _num(revenue_amount, float),
+                            _num(self_reported, int) or 0, notes.strip()[:1000])
+    return RedirectResponse(f"/clients/{cid}/revenue?month={month}&msg=Saved", 303)
+
+
+@app.post("/clients/{cid}/revenue/demo", dependencies=[Depends(auth)])
+def revenue_demo(cid: int, action: str = Form("add")):
+    if not config.DEMO_MODE:
+        raise HTTPException(400, "Demo data is only available when DEMO_MODE=1")
+    with get_db() as db:
+        _client(db, cid)
+        revenue.clear_demo(db, cid)
+        if action == "add":
+            revenue.seed_demo(db, cid)
+    return RedirectResponse(f"/clients/{cid}/revenue", 303)

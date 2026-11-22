@@ -32,6 +32,21 @@
 </tr>{% endfor %}</table>
 <p class="small muted">#N = rank in the answer · 🔗 = website cited as a source</p></div>
 {% endif %}
+{% if rev %}<div class="card"><h2>Leads & revenue from AI ({{ rev.month }})</h2>
+  <div class="grid" style="margin-bottom:14px">
+    <div class="kpi"><div class="l">Visits from AI</div><div class="v">{{ rev.ai_visits }}</div></div>
+    <div class="kpi"><div class="l">Leads from AI</div><div class="v">{{ rev.total_ai_leads }}</div></div>
+    <div class="kpi"><div class="l">Share of all leads</div><div class="v">{{ rev.ai_lead_share if rev.ai_lead_share is not none else '–' }}{% if rev.ai_lead_share is not none %}%{% endif %}</div></div>
+    {% if rev.customers is not none %}<div class="kpi"><div class="l">Customers won</div><div class="v">{{ rev.customers }}</div></div>{% endif %}
+    {% if rev.revenue is not none %}<div class="kpi"><div class="l">Revenue from AI</div><div class="v">{{ currency }}{{ '{:,.0f}'.format(rev.revenue) }}</div></div>{% endif %}
+  </div>
+  {% if rev.by_source %}<table><tr><th>AI assistant</th><th>Visits</th><th>Leads</th></tr>
+    {% for r in rev.by_source %}<tr><td>{{ r.source }}</td><td>{{ r.visits }}</td><td>{{ r.leads }}</td></tr>{% endfor %}</table>{% endif %}
+  <h3>Trend</h3>
+  <table><tr><th>Month</th>{% for m in rev_trend %}<th>{{ m.month }}</th>{% endfor %}</tr>
+    <tr><td>AI visits</td>{% for m in rev_trend %}<td>{{ m.ai_visits }}</td>{% endfor %}</tr>
+    <tr><td>AI leads</td>{% for m in rev_trend %}<td><b>{{ m.total_ai_leads }}</b></td>{% endfor %}</tr></table>
+</div>{% endif %}
 {% if fc %}<div class="card"><h2>AI Fact-Check: is what AI says about you true?</h2>
   <div class="grid" style="margin-bottom:14px">
     <div class="kpi"><div class="l">AI Accuracy Score</div><div class="v">{{ fc.accuracy if fc.accuracy is not none else '–' }}{% if fc.accuracy is not none %}%{% endif %}</div></div>
