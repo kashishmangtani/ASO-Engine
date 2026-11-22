@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "_verdict.html" import verdict, score_color %}
+{% block title %}Fact-Check #{{ run.id }} · {{ c.name }}{% endblock %}
+{% block body %}
+<p><a href="/clients/{{ c.id }}/facts">← Fact-Check · {{ c.name }}</a></p>
+<h1>AI Fact-Check #{{ run.id }} <span class="pill">{{ run.status }}</span></h1>
+<p class="muted">{{ run.started_at }} · {{ s.answers or 0 }} answers graded{% if s.errors %} · {{ s.errors }} errors{% endif %}{% if s.note %} · <b>{{ s.note }}</b>{% endif %}{% if s.error %} · <span style="color:var(--bad)">{{ s.error }}</span>{% endif %}</p>
+
+{% if run.status == 'done' %}
+<div class="grid" style="margin-bottom:20px">
+  <div class="kpi"><div class="l">AI Accuracy Score</div><div class="v" style="color:{{ score_color(s.accuracy) }}">{{ s.accuracy if s.accuracy is not none else '–' }}{% if s.accuracy is not none %}%{% endif %}</div><div class="small muted">of answers that stated facts</div></div>
+  <div class="kpi"><div class="l">Wrong or outdated</div><div class="v" style="color:{{ 'var(--bad)' if s.wrong_answers else 'var(--good)' }}">{{ s.wrong_answers }}</div><div class="small muted">answers with false facts</div></div>
+  <div class="kpi"><div class="l">AI knows the answer</div><div class="v">{{ s.coverage }}%</div><div class="small muted">rest: "I don't know"</div></div>
+  <div class="kpi"><div class="l">Correct</div><div class="v">{{ s.counts.correct }}<span class="muted" style="font-size:16px">/{{ s.answers }}</span></div><div class="small muted">fully correct answers</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+  <div class="card"><h2>Accuracy by AI engine</h2>
+    {% for e, v in s.by_engine.items() %}
+      <div class="row" style="justify-content:space-between"><span>{{ e }}</span><b>{{ v.accuracy if v.accuracy is not none else '–' }}{% if v.accuracy is not none %}%{% endif %}</b></div>
+      <div class="bar" style="margin-bottom:12px"><span style="width:{{ v.accuracy or 0 }}%"></span></div>
+    {% endfor %}
+  </div>
+  <div class="card"><h2>Sources cited next to wrong answers</h2>
+    <p class="small muted">Websites the AI cited when it got facts wrong. These are the first places to check for outdated listings.</p>
+    {% for d, n in s.error_sources.items() %}
+      <div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><a href="https://{{ d }}" target="_blank" rel="noopener">{{ d }}</a><span class="pill">{{ n }}×</span></div>
+    {% else %}<p class="muted">No sources were cited next to wrong answers.</p>{% endfor %}
+  </div>
+</div>
+
+<div class="card"><h2>What AI gets wrong ({{ problems|length }})</h2>
+  {% for r in problems %}
+  <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div class="row" style="justify-content:space-between"><b>{{ r.question }}</b><span>{{ verdict(r.verdict, labels) }} <span class="pill">{{ r.engine }}</span></span></div>
+    <p class="small" style="margin:6px 0">{{ r.explanation }}</p>
+    {% if r.claims %}<table class="small">
+      <tr><th>AI said</th><th>Correct</th></tr>
+      {% for cl in r.claims %}<tr><td style="color:var(--bad)">✗ {{ cl.claim }}</td><td style="color:var(--good)">✓ {{ cl.correct }}</td></tr>{% endfor %}
+    </table>{% endif %}
+    <details><summary class="small">Full answer & sources</summary><div class="answer">{{ r.answer }}</div>
+      {% if r.cites %}<ul class="small">{% for u in r.cites[:10] %}<li><a href="{{ u }}" target="_blank" rel="noopener">{{ u[:80] }}</a></li>{% endfor %}</ul>{% endif %}</details>
+  </div>
+  {% else %}<p class="muted">🎉 No wrong facts found.</p>{% endfor %}
+</div>
+{% endif %}
+
+<div class="card"><h2>All answers</h2>
+<table>
+  <tr><th>Question</th><th>Engine</th><th>Verdict</th><th>Why</th><th></th></tr>
+  {% for r in results %}
+  <tr>
+    <td style="max-width:260px">{{ r.question }}</td><td>{{ r.engine }}</td>
+    {% if r.error %}<td colspan="2"><span class="pill bad">error</span> <span class="small">{{ r.error }}</span></td>
+    {% else %}<td>{{ verdict(r.verdict, labels) }}</td><td class="small">{{ r.explanation }}</td>{% endif %}
+    <td><details><summary class="small">answer</summary><div class="answer">{{ r.answer }}</div><div class="small"><b>Correct:</b> {{ r.expected }}</div></details></td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% endblock %}

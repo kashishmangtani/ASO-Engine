@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}AI Fact-Check · {{ c.name }}{% endblock %}
+{% block body %}
+{% if running %}<meta http-equiv="refresh" content="6">{% endif %}
+<p><a href="/clients/{{ c.id }}">← {{ c.name }}</a></p>
+<div class="row" style="justify-content:space-between;margin-bottom:12px">
+  <div><h1>AI Fact-Check</h1>
+    <div class="muted">Is what AI assistants say about <b>{{ c.brand }}</b> actually true? Add brand questions and the correct answers, then run the check.</div></div>
+  <form method="post" action="/clients/{{ c.id }}/factcheck/run"><button class="btn" {% if running or not facts %}disabled{% endif %}>{% if running %}Checking…{% else %}▶ Run fact-check{% endif %}</button></form>
+</div>
+{% if msg %}<div class="card small" style="border-color:var(--brand)">{{ msg }}</div>{% endif %}
+{% if not claude %}<div class="card small"><span class="pill warn">Demo grading</span> Without <code>ANTHROPIC_API_KEY</code>, answers and grades are simulated. Claude is needed to grade real answers.</div>{% endif %}
+
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2 style="margin:0">Fact sheet ({{ facts|length }})</h2>
+    <div class="row">
+      <form method="post" action="/clients/{{ c.id }}/facts/starter"><button class="btn ghost">+ Starter questions</button></form>
+      {% if claude %}<form method="post" action="/clients/{{ c.id }}/facts/draft" onsubmit="this.querySelector('button').textContent='Reading website…'"><button class="btn ghost">✨ Draft from website</button></form>{% endif %}
+    </div>
+  </div>
+  <p class="small muted">The fact sheet is the source of truth for grading, so get the client to confirm every answer. Questions without an answer are skipped.</p>
+  <table>
+    <tr><th style="width:40%">Question customers ask AI</th><th>Correct answer (client-approved)</th><th style="width:150px"></th></tr>
+    {% for f in facts %}
+    <tr>
+      <form method="post" action="/facts/{{ f.id }}/update" id="f{{ f.id }}"></form>
+      <td><textarea form="f{{ f.id }}" name="question" rows="2">{{ f.question }}</textarea></td>
+      <td><textarea form="f{{ f.id }}" name="answer" rows="2" placeholder="Fill in the correct answer…" {% if not f.answer %}style="border-color:var(--warn)"{% endif %}>{{ f.answer }}</textarea></td>
+      <td><div class="row"><button form="f{{ f.id }}" class="btn ghost" style="padding:4px 10px">Save</button>
+        <form method="post" action="/facts/{{ f.id }}/delete"><button class="btn ghost" style="padding:4px 10px" title="Delete">✕</button></form></div></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">No facts yet. Start with <b>Starter questions</b>{% if claude %} or <b>Draft from website</b>{% endif %}.</td></tr>
+    {% endfor %}
+  </table>
+  <form method="post" action="/clients/{{ c.id }}/facts" style="margin-top:14px">
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div><label>New question</label><input name="question" required placeholder="Does {{ c.brand }} accept insurance?"></div>
+      <div><label>Correct answer</label><input name="answer" placeholder="Yes: Delta, Aetna and Cigna"></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn">Add fact</button></div>
+  </form>
+</div>
+
+<div class="card"><h2>Fact-check history</h2>
+  <table>
+    <tr><th>Run</th><th>Accuracy</th><th>Wrong answers</th><th>AI knows the answer</th><th></th></tr>
+    {% for r in runs %}
+    <tr>
+      <td><a href="/factchecks/{{ r.id }}">Check #{{ r.id }}</a> <span class="small muted">{{ r.started_at }}</span></td>
+      {% if r.status == 'done' %}
+        <td><b>{{ r.s.accuracy if r.s.accuracy is not none else '–' }}{% if r.s.accuracy is not none %}%{% endif %}</b></td>
+        <td>{{ r.s.wrong_answers }}</td><td>{{ r.s.coverage }}%</td><td>{% if r.s.note %}<span class="pill">demo</span>{% endif %}</td>
+      {% else %}
+        <td colspan="4"><span class="pill {{ 'bad' if r.status == 'failed' else 'warn' }}">{{ r.status }}</span> <span class="small">{{ r.s.error }}</span></td>
+      {% endif %}
+    </tr>
+    {% else %}<tr><td colspan="5" class="muted">No checks yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

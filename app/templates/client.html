@@ -44,6 +44,17 @@
 <div class="card">No visibility data yet. Click <b>Run AI visibility check</b> to ask every AI engine your tracked prompts.</div>
 {% endif %}
 
+{% if fc_running %}<meta http-equiv="refresh" content="6">{% endif %}
+<div class="card row" style="justify-content:space-between">
+  <div><h2 style="margin:0 0 4px">AI Fact-Check</h2>
+    {% if fc %}<span class="muted">Latest: </span><b style="font-size:20px;color:{{ 'var(--good)' if fc.accuracy is not none and fc.accuracy >= 80 else 'var(--warn)' if fc.accuracy is not none and fc.accuracy >= 50 else 'var(--bad)' }}">{{ fc.accuracy if fc.accuracy is not none else '–' }}{% if fc.accuracy is not none %}%{% endif %} accurate</b>
+      <span class="muted"> · {{ fc.wrong_answers }} wrong answer{{ '' if fc.wrong_answers == 1 else 's' }} · <a href="/factchecks/{{ fc_run.id }}">view</a></span>
+    {% elif fc_running %}<span class="pill warn">checking…</span>
+    {% else %}<span class="muted">Check whether AI assistants state the right prices, hours, services and locations. {{ fact_count }} fact{{ '' if fact_count == 1 else 's' }} on file.</span>{% endif %}
+  </div>
+  <a class="btn {{ 'ghost' if fc else '' }}" href="/clients/{{ c.id }}/facts">{{ 'Open Fact-Check' if fc else 'Set up Fact-Check' }}</a>
+</div>
+
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(420px,1fr))">
 <div class="card" id="prompts"><h2>Tracked prompts ({{ prompts|length }})</h2>
   <table>{% for p in prompts %}

@@ -53,6 +53,33 @@ CREATE TABLE IF NOT EXISTS audits (
     ai_plan TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS facts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    question TEXT NOT NULL,
+    answer TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS factcheck_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    started_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'running',
+    summary TEXT DEFAULT '{}'
+);
+CREATE TABLE IF NOT EXISTS factcheck_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL REFERENCES factcheck_runs(id) ON DELETE CASCADE,
+    fact_id INTEGER REFERENCES facts(id) ON DELETE SET NULL,
+    question TEXT,
+    expected TEXT,
+    engine TEXT,
+    answer TEXT,
+    citations TEXT DEFAULT '[]',
+    verdict TEXT,
+    explanation TEXT,
+    wrong_claims TEXT DEFAULT '[]',
+    error TEXT
+);
 CREATE TABLE IF NOT EXISTS leads (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     token TEXT UNIQUE,
