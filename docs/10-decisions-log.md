@@ -21,6 +21,7 @@
 | 7 | Hosting provider and domain | doc 03 options | Open |
 | 8 | Booking tool (Calendly / Cal.com) | Set `BOOKING_URL` | Open |
 | 9 | Minimum contract term | 3 or 6 months | Open |
+| 10 | Confirm USP | Recommended: "Cited, Correct & Converting": AI Fact-Check + real-customer journeys + AI Revenue Report (doc 11) | Open |
 
 ## Change log
 | Date | Change |
