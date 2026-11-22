@@ -10,6 +10,7 @@ It shows clients whether ChatGPT, Claude, Perplexity and Gemini mention and reco
 | **AI visibility tracking**: asks each AI engine the questions your client's customers ask, then measures brand mentions, rank in the answer, citations of the client's website, sentiment and competitor share of voice | "Monthly AI Visibility Monitoring" |
 | **AI-readiness audit**: checks robots.txt for AI crawlers (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended…), llms.txt, schema.org JSON-LD, FAQ structure, server-rendered content, facts and statistics, E-E-A-T signals and metadata, then scores the site 0–100 | "AI Search Audit" (one-off) |
 | **AI strategist** (Claude): writes an action plan with quick wins, content ideas, a rewritten intro and ready-to-paste JSON-LD. It also suggests prompts to track | Included in audits and retainers |
+| **AI Fact-Check**: asks each AI assistant questions about the brand (prices, hours, locations, services), has Claude grade every answer against a client-approved fact sheet, and shows an AI Accuracy Score, each wrong claim next to the truth, and the sources cited alongside wrong answers | "AI Fact-Check / AI Reputation Accuracy" |
 | **llms.txt generator** | Implementation add-on |
 | **White-label client report** in your agency's name and colour, with changes since the last run. Print it to PDF | Monthly deliverable |
 

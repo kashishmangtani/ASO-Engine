@@ -58,7 +58,7 @@ Most providers stop at *"Are you mentioned?"* We cover the whole path from AI an
 ## Build plan in the platform
 | Feature | Effort | Builds on |
 |---|---|---|
-| AI Fact-Check (brand prompts + fact sheet + Claude grading + accuracy score) | Small–medium | `engines.py`, `advisor.py` |
+| AI Fact-Check (brand prompts + fact sheet + Claude grading + accuracy score) | ✅ **Built** (`app/factcheck.py`, `/clients/{id}/facts`) | `engines.py` |
 | Real-customer prompt import (CSV/Search Console paste, AI clustering) | Small | `prompts` table, `advisor.py` |
 | Buyer-journey simulation (multi-step conversations, drop-off point) | Medium | `engines.py` (multi-message), `analyzer.py` |
 | AI Revenue Report (referrer + form-source tracking snippet, report section) | Medium | `report.html`, new tracking endpoint |

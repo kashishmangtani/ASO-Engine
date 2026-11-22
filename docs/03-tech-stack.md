@@ -45,6 +45,7 @@
 | `app/analyzer.py` | Turns an AI answer into metrics |
 | `app/tracker.py` | Runs every prompt × engine in parallel and stores the results |
 | `app/auditor.py` | AI-readiness audit (17 checks) and llms.txt generator |
+| `app/factcheck.py` | AI Fact-Check: ask brand questions, grade answers against the fact sheet with Claude (structured JSON output), accuracy score, error sources |
 | `app/advisor.py` | Claude-written action plans and prompt suggestions |
 | `app/templates/` | `landing.html`, `check_result.html`, `_site.css` (public); `base.html`, `dashboard.html`, `client.html`, `run.html`, `audit.html`, `report.html`, `leads.html` (admin) |
 | `run_all.py` | Cron entry point for weekly runs |
@@ -57,6 +58,8 @@
 | `runs` | client_id, started_at, status, summary (JSON metrics) |
 | `results` | run_id, prompt, engine, answer, citations, mentioned, cited, position, sentiment, competitors_mentioned, error |
 | `audits` | client_id, url, score, data (JSON), ai_plan |
+| `facts` | client_id, question, answer (the client-approved fact sheet) |
+| `factcheck_runs` / `factcheck_results` | per question × engine: answer, citations, verdict, explanation, wrong_claims |
 | `leads` | token, name, email, website, message, source, score, audit_data, status |
 
 ## Metrics definitions
@@ -67,6 +70,7 @@
 | Citation rate | % of answers whose cited sources include the client's domain |
 | Average position | Mean rank of the brand in list-style answers (or order of first mention) |
 | Sentiment | Keyword-based positive/neutral/negative for sentences mentioning the brand |
+| AI Accuracy Score | (correct + ½ × partly correct) ÷ answers that stated facts; "I don't know" answers are excluded and reported as coverage |
 | AI-readiness score | Weighted pass rate of 17 audit checks (0–100) |
 
 ## Environment variables

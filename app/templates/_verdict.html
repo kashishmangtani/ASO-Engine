@@ -1,0 +1,2 @@
+{% macro verdict(v, labels) %}{% if v %}<span class="pill {{ {'correct':'good','partially_correct':'warn','incorrect':'bad','outdated':'bad'}.get(v,'') }}">{{ labels.get(v, v) }}</span>{% endif %}{% endmacro %}
+{% macro score_color(x) %}{{ 'var(--good)' if x is not none and x >= 80 else 'var(--warn)' if x is not none and x >= 50 else 'var(--bad)' }}{% endmacro %}

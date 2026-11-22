@@ -32,6 +32,18 @@
 </tr>{% endfor %}</table>
 <p class="small muted">#N = rank in the answer · 🔗 = website cited as a source</p></div>
 {% endif %}
+{% if fc %}<div class="card"><h2>AI Fact-Check: is what AI says about you true?</h2>
+  <div class="grid" style="margin-bottom:14px">
+    <div class="kpi"><div class="l">AI Accuracy Score</div><div class="v">{{ fc.accuracy if fc.accuracy is not none else '–' }}{% if fc.accuracy is not none %}%{% endif %}</div></div>
+    <div class="kpi"><div class="l">Wrong or outdated answers</div><div class="v">{{ fc.wrong_answers }}</div></div>
+    <div class="kpi"><div class="l">AI knows the answer</div><div class="v">{{ fc.coverage }}%</div></div>
+  </div>
+  {% if fc_wrong %}<table><tr><th>Question</th><th>AI assistant</th><th>What it said</th><th>The truth</th></tr>
+    {% for r in fc_wrong %}{% for cl in r.claims or [{'claim': r.explanation, 'correct': r.expected}] %}
+    <tr><td>{{ r.question }}</td><td>{{ r.engine }}</td><td style="color:var(--bad)">✗ {{ cl.claim }}</td><td style="color:var(--good)">✓ {{ cl.correct }}</td></tr>
+    {% endfor %}{% endfor %}</table>
+  {% else %}<p>No wrong or outdated facts found in the latest check. 🎉</p>{% endif %}
+</div>{% endif %}
 {% if d %}<div class="card"><h2>Top website fixes</h2><table>
   {% for ch in d.checks if not ch.passed %}<tr><td><b>{{ ch.name }}</b></td><td class="small">{{ ch.fix }}</td></tr>{% endfor %}
 </table></div>

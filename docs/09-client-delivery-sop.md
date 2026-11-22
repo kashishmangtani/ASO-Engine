@@ -7,6 +7,7 @@
 - [ ] Create or update the client in `/app` with brand, aliases, domain, industry and competitors
 - [ ] Build the prompt list: starter prompts + "Suggest 15 prompts with AI" + the client's own questions. Remove irrelevant ones. Target `[N]` prompts per plan
 - [ ] **Baseline run**: run the visibility check and save the date
+- [ ] **AI Fact-Check**: build the fact sheet (Starter questions or Draft from website), get the client to approve every answer, run the first check
 - [ ] Audit the homepage + top `[N]` service/product pages; generate the AI action plan
 - [ ] Share the baseline report and agree the 90-day priority list
 
@@ -41,6 +42,7 @@
 | Weekly (automatic) | `run_all.py` via cron runs the visibility check |
 | Week 1 | Review the latest run: wins, drops, new competitors, top cited sources |
 | Weeks 1–3 | Implement this month's fixes and content |
+| Week 4 | Re-run the AI Fact-Check; chase any sources still spreading wrong facts |
 | Week 4 | Re-audit changed pages; generate the client report (`/clients/{id}/report` → Print to PDF) |
 | Week 4 | Send the report + a short summary email; 30-minute review call |
 

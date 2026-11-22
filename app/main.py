@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
-from . import advisor, config
+from . import advisor, config, factcheck
 from .auditor import audit as run_audit, generate_llms_txt
 from .db import get_db, init_db, loads, split_list
 from .engines import available_engines
@@ -107,11 +107,15 @@ def client_page(request: Request, cid: int):
                 db.execute("SELECT * FROM runs WHERE client_id=? ORDER BY id DESC LIMIT 20", (cid,))]
         audits = [dict(a) for a in db.execute(
             "SELECT id, url, score, created_at FROM audits WHERE client_id=? ORDER BY id DESC LIMIT 10", (cid,))]
+        fc_run, fc = factcheck.latest_summary(db, cid)
+        fc_running = db.execute("SELECT 1 FROM factcheck_runs WHERE client_id=? AND status='running'", (cid,)).fetchone()
+        fact_count = db.execute("SELECT COUNT(*) FROM facts WHERE client_id=?", (cid,)).fetchone()[0]
     latest = next((r for r in runs if r["status"] == "done"), None)
     trend = [{"date": r["started_at"][:10], "v": r["s"].get("visibility", 0)} for r in reversed(runs) if r["status"] == "done"]
     return templates.TemplateResponse(request, "client.html", {
         "c": c, "prompts": prompts, "runs": runs, "audits": audits, "latest": latest, "trend": trend,
-        "running": any(r["status"] == "running" for r in runs), "ai_enabled": advisor.enabled()})
+        "running": any(r["status"] == "running" for r in runs), "ai_enabled": advisor.enabled(),
+        "fc_run": fc_run, "fc": fc, "fc_running": bool(fc_running), "fact_count": fact_count})
 
 
 @app.post("/clients/{cid}/edit", dependencies=[Depends(auth)])
@@ -239,6 +243,10 @@ def report(request: Request, cid: int):
                           (cid,)).fetchone()
         a = db.execute("SELECT * FROM audits WHERE client_id=? ORDER BY id DESC LIMIT 1", (cid,)).fetchone()
         results = [dict(r) for r in db.execute("SELECT * FROM results WHERE run_id=? AND error IS NULL", (run["id"],))] if run else []
+        fc_run, fc = factcheck.latest_summary(db, cid)
+        fc_wrong = [dict(r) | {"claims": loads(r["wrong_claims"], [])} for r in db.execute(
+            "SELECT * FROM factcheck_results WHERE run_id=? AND verdict IN ('incorrect','outdated') ORDER BY question, engine",
+            (fc_run["id"],))] if fc_run else []
     per_prompt: dict[str, dict] = {}
     for r in results:
         p = per_prompt.setdefault(r["prompt_text"], {"engines": {}, "mentioned": 0})
@@ -247,7 +255,113 @@ def report(request: Request, cid: int):
     return templates.TemplateResponse(request, "report.html", {
         "c": c, "run": run, "s": s or {}, "prev": loads(prev["summary"], {}) if prev else None,
         "a": dict(a) if a else None, "d": loads(a["data"], {}) if a else None,
-        "per_prompt": per_prompt, "engines": sorted({r["engine"] for r in results})})
+        "per_prompt": per_prompt, "engines": sorted({r["engine"] for r in results}),
+        "fc_run": fc_run, "fc": fc, "fc_wrong": fc_wrong, "labels": factcheck.VERDICT_LABELS})
+
+
+# ---------------------------------------------------------------- AI Fact-Check
+@app.get("/clients/{cid}/facts", response_class=HTMLResponse, dependencies=[Depends(auth)])
+def facts_page(request: Request, cid: int, msg: str = ""):
+    with get_db() as db:
+        c = _client(db, cid)
+        facts = [dict(f) for f in db.execute("SELECT * FROM facts WHERE client_id=? ORDER BY id", (cid,))]
+        runs = [dict(r) | {"s": loads(r["summary"], {})} for r in
+                db.execute("SELECT * FROM factcheck_runs WHERE client_id=? ORDER BY id DESC LIMIT 20", (cid,))]
+    return templates.TemplateResponse(request, "facts.html", {
+        "c": c, "facts": facts, "runs": runs, "msg": msg[:300], "claude": factcheck.claude_enabled(),
+        "running": any(r["status"] == "running" for r in runs)})
+
+
+@app.post("/clients/{cid}/facts", dependencies=[Depends(auth)])
+def add_fact(cid: int, question: str = Form(...), answer: str = Form("")):
+    with get_db() as db:
+        _client(db, cid)
+        db.execute("INSERT INTO facts (client_id, question, answer) VALUES (?,?,?)",
+                   (cid, question.strip()[:500], answer.strip()[:2000]))
+    return RedirectResponse(f"/clients/{cid}/facts", 303)
+
+
+@app.post("/clients/{cid}/facts/starter", dependencies=[Depends(auth)])
+def add_starter_facts(cid: int):
+    with get_db() as db:
+        c = _client(db, cid)
+        existing = {r[0] for r in db.execute("SELECT question FROM facts WHERE client_id=?", (cid,))}
+        for q, a in factcheck.STARTER_QUESTIONS:
+            q = q.format(brand=c["brand"])
+            if q not in existing:
+                db.execute("INSERT INTO facts (client_id, question, answer) VALUES (?,?,?)", (cid, q, a))
+    return RedirectResponse(f"/clients/{cid}/facts?msg=Starter+questions+added.+Fill+in+the+correct+answers.", 303)
+
+
+@app.post("/clients/{cid}/facts/draft", dependencies=[Depends(auth)])
+def draft_facts(cid: int):
+    with get_db() as db:
+        c = _client(db, cid)
+    if not factcheck.claude_enabled():
+        return RedirectResponse(f"/clients/{cid}/facts?msg=Add+ANTHROPIC_API_KEY+to+draft+facts+from+the+website.", 303)
+    page = run_audit(c["domain"])
+    if page.get("error") or not page.get("page_text"):
+        return RedirectResponse(f"/clients/{cid}/facts?msg=Couldn%27t+read+the+website.+Add+facts+manually.", 303)
+    try:
+        drafted = factcheck.draft_fact_sheet(c["brand"], c["domain"], page["page_text"])
+    except Exception as e:  # surface API problems to the operator instead of a 500
+        return RedirectResponse(f"/clients/{cid}/facts?msg=Drafting+failed:+{str(e)[:120]}", 303)
+    with get_db() as db:
+        for f in drafted:
+            db.execute("INSERT INTO facts (client_id, question, answer) VALUES (?,?,?)",
+                       (cid, f["question"][:500], f["answer"][:2000]))
+    return RedirectResponse(
+        f"/clients/{cid}/facts?msg=Drafted+{len(drafted)}+facts+from+the+website.+Check+each+answer+with+the+client+before+running.", 303)
+
+
+@app.post("/facts/{fid}/update", dependencies=[Depends(auth)])
+def update_fact(fid: int, question: str = Form(...), answer: str = Form("")):
+    with get_db() as db:
+        row = db.execute("SELECT client_id FROM facts WHERE id=?", (fid,)).fetchone()
+        if not row:
+            raise HTTPException(404)
+        db.execute("UPDATE facts SET question=?, answer=? WHERE id=?", (question.strip()[:500], answer.strip()[:2000], fid))
+    return RedirectResponse(f"/clients/{row['client_id']}/facts", 303)
+
+
+@app.post("/facts/{fid}/delete", dependencies=[Depends(auth)])
+def delete_fact(fid: int):
+    with get_db() as db:
+        row = db.execute("SELECT client_id FROM facts WHERE id=?", (fid,)).fetchone()
+        if not row:
+            raise HTTPException(404)
+        db.execute("DELETE FROM facts WHERE id=?", (fid,))
+    return RedirectResponse(f"/clients/{row['client_id']}/facts", 303)
+
+
+@app.post("/clients/{cid}/factcheck/run", dependencies=[Depends(auth)])
+def run_factcheck(cid: int, background: BackgroundTasks):
+    with get_db() as db:
+        _client(db, cid)
+        facts = db.execute("SELECT COUNT(*) FROM facts WHERE client_id=? AND answer != ''", (cid,)).fetchone()[0]
+    if not facts:
+        return RedirectResponse(f"/clients/{cid}/facts?msg=Add+at+least+one+question+with+its+correct+answer+first.", 303)
+    run_id = factcheck.start_run(cid)
+    background.add_task(factcheck.safe_execute, run_id)
+    return RedirectResponse(f"/clients/{cid}/facts", 303)
+
+
+@app.get("/factchecks/{rid}", response_class=HTMLResponse, dependencies=[Depends(auth)])
+def factcheck_page(request: Request, rid: int):
+    with get_db() as db:
+        run = db.execute("SELECT * FROM factcheck_runs WHERE id=?", (rid,)).fetchone()
+        if not run:
+            raise HTTPException(404)
+        run = dict(run)
+        c = _client(db, run["client_id"])
+        results = [dict(r) | {"cites": loads(r["citations"], []), "claims": loads(r["wrong_claims"], [])}
+                   for r in db.execute("SELECT * FROM factcheck_results WHERE run_id=? ORDER BY fact_id, engine", (rid,))]
+    order = {"incorrect": 0, "outdated": 1, "partially_correct": 2, "not_found": 3, "correct": 4, None: 5}
+    problems = sorted([r for r in results if r["verdict"] in ("incorrect", "outdated", "partially_correct")],
+                      key=lambda r: order[r["verdict"]])
+    return templates.TemplateResponse(request, "factcheck.html", {
+        "run": run, "s": loads(run["summary"], {}), "c": c, "results": results, "problems": problems,
+        "labels": factcheck.VERDICT_LABELS})
 
 
 # ================================================================ public website
