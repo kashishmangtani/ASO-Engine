@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-palette="ink-gold">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overview · {{CLIENT_NAME}} · {{BRAND_NAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<!-- Dashboard / client portal page pattern: sidebar + page head + KPI row + cards. -->
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="#" style="display:block;margin-bottom:var(--space-6);padding:0"><span class="brand-mark"></span>{{BRAND_NAME}}</a>
+    <p class="kpi-label" style="margin:0 0 var(--space-2) var(--space-3)">{{CLIENT_NAME}}</p>
+    <nav>
+      <a href="#" aria-current="page">Overview</a>
+      <a href="#">AI visibility</a>
+      <a href="#">Fact-Check</a>
+      <a href="#">AI revenue</a>
+      <a href="#">Reports</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="page-head">
+      <div><p class="eyebrow">November 2026</p><h1 style="margin:0">Overview</h1></div>
+      <div class="row"><a class="btn btn--ghost btn--sm" href="#">Download PDF</a><a class="btn btn--sm" href="#">View full report</a></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:var(--space-7)">
+      <div class="kpi"><div class="kpi-label">AI visibility</div><div class="kpi-value num">64%</div><div class="kpi-delta up">▲ 12 pts</div></div>
+      <div class="kpi"><div class="kpi-label">Share of voice</div><div class="kpi-value num">31%</div><div class="kpi-delta up">▲ 6 pts</div></div>
+      <div class="kpi"><div class="kpi-label">AI accuracy</div><div class="kpi-value num">88%</div><div class="kpi-delta up">▲ 21 pts</div></div>
+      <div class="kpi"><div class="kpi-label">Leads from AI</div><div class="kpi-value num">13</div><div class="kpi-delta down">▼ 2</div></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+      <section class="card">
+        <h3>By AI assistant</h3>
+        <table class="table">
+          <thead><tr><th>Assistant</th><th class="num">Mentioned</th><th>Visibility</th></tr></thead>
+          <tbody>
+            <tr><td>ChatGPT</td><td class="num">72%</td><td><div class="bar"><span style="width:72%"></span></div></td></tr>
+            <tr><td>Perplexity</td><td class="num">58%</td><td><div class="bar"><span style="width:58%"></span></div></td></tr>
+            <tr><td>Gemini</td><td class="num">41%</td><td><div class="bar"><span style="width:41%"></span></div></td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="card">
+        <h3>What we did this month</h3>
+        <ul class="stack" style="padding-left:1.1em;margin:0">
+          <li>Unblocked PerplexityBot and OAI-SearchBot in robots.txt.</li>
+          <li>Published an FAQ page answering your 12 most-asked questions.</li>
+          <li>Corrected outdated prices on two directory listings.</li>
+        </ul>
+        <div class="callout callout--bad" style="margin-top:var(--space-5)"><b>Still wrong:</b> Gemini says you are closed on Saturdays.</div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

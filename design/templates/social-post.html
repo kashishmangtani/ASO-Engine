@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" data-palette="ink-gold">
+<head>
+<meta charset="utf-8">
+<title>LinkedIn post graphic · 1080×1080</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  /* Export: open at 1080×1080 and screenshot (e.g. Playwright), or use a 4:5 variant at 1080×1350. */
+  html, body { margin: 0; }
+  .post { width: 1080px; height: 1080px; box-sizing: border-box; padding: 96px; background: var(--color-bg);
+          display: flex; flex-direction: column; justify-content: space-between; }
+  .post .eyebrow { font-size: 22px; }
+  .post h1 { font: 500 88px/1.02 var(--font-display); letter-spacing: -0.02em; margin: 28px 0 0; max-width: 15ch; }
+  .post h1 em { color: var(--color-accent); }
+  .stat { display: flex; align-items: baseline; gap: 28px; border-top: 1px solid var(--color-ink); padding-top: 36px; }
+  .stat b { font: 500 150px/1 var(--font-display); color: var(--color-ink); font-variant-numeric: tabular-nums; }
+  .stat span { font: 400 30px/1.35 var(--font-body); color: var(--color-muted); max-width: 18ch; }
+  .foot { display: flex; justify-content: space-between; font: 500 24px var(--font-body); color: var(--color-muted); }
+  .foot .brand-mark { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--color-accent); margin-right: 12px; }
+</style>
+</head>
+<body>
+<div class="post">
+  <div>
+    <div class="eyebrow">AI search, explained</div>
+    <h1>Is ChatGPT quoting the <em>wrong price</em> for your business?</h1>
+  </div>
+  <!-- Use only numbers from your own tracking data (never invented). -->
+  <div class="stat"><b>{{STAT}}</b><span>{{STAT_CAPTION}}</span></div>
+  <div class="foot"><span><span class="brand-mark"></span>{{BRAND_NAME}}</span><span>Free AI check · {{WEBSITE}}</span></div>
+</div>
+</body>
+</html>

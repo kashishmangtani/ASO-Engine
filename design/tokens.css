@@ -1,0 +1,133 @@
+/* =====================================================================
+   BRAND DESIGN TOKENS: the single source of truth for every surface
+   (website, dashboard, client portal, reports, emails, marketing).
+   Style: premium & minimal. See docs/14-design-system.md.
+
+   Palette: set <html data-palette="..."> to one of
+     ink-gold (default, provisional) · forest-cream · charcoal-terracotta · mono-indigo
+   Fonts (Google Fonts):
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+   ===================================================================== */
+
+:root,
+[data-palette="ink-gold"] {
+  --color-bg: #FAF8F3;          /* page background: warm white */
+  --color-surface: #FFFFFF;     /* cards, tables, inputs */
+  --color-surface-alt: #F3EFE6; /* quiet bands, table headers */
+  --color-ink: #121826;         /* primary text, headings (16.7:1 on bg) */
+  --color-muted: #5E6472;       /* secondary text (5.6:1) */
+  --color-line: #E6E1D6;        /* hairlines, borders */
+  --color-accent: #8C6A2F;      /* links, primary buttons, key numbers (4.7:1; white on it 5.0:1) */
+  --color-accent-soft: #C9A96E; /* decoration only: rules, chart fills; never text (2.1:1) */
+  --color-accent-tint: #F4ECDD; /* selected rows, highlight backgrounds */
+}
+
+[data-palette="forest-cream"] {
+  --color-bg: #F6F3EA;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #EEEADF;
+  --color-ink: #17211B;          /* 14.9:1 */
+  --color-muted: #5B6660;        /* 5.4:1 */
+  --color-line: #E2DDD0;
+  --color-accent: #2E5A45;       /* 7.1:1; white on it 7.9:1 */
+  --color-accent-soft: #8FB3A0;  /* decoration only */
+  --color-accent-tint: #E3EDE6;
+}
+
+[data-palette="charcoal-terracotta"] {
+  --color-bg: #F8F6F2;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F0ECE5;
+  --color-ink: #1C1C1E;          /* 15.8:1 */
+  --color-muted: #62605C;        /* 5.8:1 */
+  --color-line: #E7E2DA;
+  --color-accent: #A2492A;       /* 5.5:1; white on it 6.0:1 */
+  --color-accent-soft: #E0A488;  /* decoration only */
+  --color-accent-tint: #F7E7DF;
+}
+
+[data-palette="mono-indigo"] {
+  --color-bg: #FFFFFF;
+  --color-surface: #FAFAFA;
+  --color-surface-alt: #F2F2F4;
+  --color-ink: #0E0E10;          /* 19.3:1 */
+  --color-muted: #5F6168;        /* 6.2:1 */
+  --color-line: #E6E6EA;
+  --color-accent: #3B3BD4;       /* 7.6:1; white on it 7.6:1 */
+  --color-accent-soft: #B9B9F2;  /* decoration only */
+  --color-accent-tint: #EDEDFC;
+}
+
+:root {
+  /* Status colours: same in every palette, muted to stay premium */
+  --color-good: #2F6B4F;   --color-good-tint: #E6F0EA;
+  --color-warn: #8A6100;   --color-warn-tint: #F8EFD9;
+  --color-bad: #A33A2E;    --color-bad-tint: #F7E4E1;
+
+  /* Typography */
+  --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+
+  --text-xs: 0.75rem;    /* 12px: labels, captions */
+  --text-sm: 0.875rem;   /* 14px: table cells, helper text */
+  --text-base: 1rem;     /* 16px: body */
+  --text-lg: 1.125rem;   /* 18px: lead paragraphs */
+  --text-xl: 1.5rem;     /* 24px: H3, KPI values (dashboard) */
+  --text-2xl: 2rem;      /* 32px: H2 */
+  --text-3xl: 2.75rem;   /* 44px: H1 (app pages) */
+  --text-display: clamp(2.5rem, 5.5vw, 4.25rem); /* marketing hero */
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.6;
+  --tracking-label: 0.08em; /* small uppercase labels only */
+
+  /* Spacing: 4px base, use these steps only */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  --space-9: 96px; --space-10: 128px;
+
+  /* Shape & depth: minimal; hairlines over shadows */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --border: 1px solid var(--color-line);
+  --shadow-sm: 0 1px 2px rgba(18, 24, 38, 0.04);
+  --shadow-md: 0 8px 24px -12px rgba(18, 24, 38, 0.18);
+
+  /* Layout */
+  --width-text: 680px;
+  --width-page: 1160px;
+  --gutter: 20px;
+
+  /* Motion: subtle */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration: 160ms;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font: 400 var(--text-base)/var(--leading-normal) var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: var(--leading-tight); letter-spacing: -0.01em; margin: 0 0 var(--space-4); }
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+h4 { font: 600 var(--text-base)/1.4 var(--font-body); margin: 0 0 var(--space-2); }
+p { margin: 0 0 var(--space-4); }
+a { color: var(--color-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.num, table td.num, .kpi-value { font-variant-numeric: tabular-nums lining-nums; }
+.eyebrow { font: 600 var(--text-xs)/1 var(--font-body); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--color-accent); }
+.muted { color: var(--color-muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
