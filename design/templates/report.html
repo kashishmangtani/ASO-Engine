@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" data-palette="ink-gold">
+<head>
+<meta charset="utf-8">
+<title>AI Visibility Report · {{CLIENT_NAME}} · {{MONTH}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  /* A4 print layout: works in the browser (Print → Save as PDF) and in WeasyPrint. */
+  @page { size: A4; margin: 18mm 16mm 20mm; @bottom-right { content: counter(page) " / " counter(pages); font: 9pt var(--font-body); color: #5E6472; } }
+  body { background: #fff; font-size: 10.5pt; }
+  .page { max-width: 178mm; margin: 0 auto; }
+  .cover { min-height: 250mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; padding-top: 30mm; }
+  .cover h1 { font-size: 38pt; line-height: 1.05; letter-spacing: -0.02em; }
+  .rule { height: 2px; width: 48px; background: var(--color-accent); margin: 8mm 0; }
+  section { page-break-inside: avoid; margin-bottom: 10mm; }
+  h2 { font-size: 18pt; margin-top: 0; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: 6mm 0 10mm; }
+  .kpi-value { font-size: 20pt; }
+  .summary { font: 400 13pt/1.5 var(--font-display); }
+  @media screen { body { background: var(--color-surface-alt); } .page { background: #fff; padding: 16mm; margin: 8mm auto; box-shadow: var(--shadow-md); } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="cover">
+    <div><span class="brand"><span class="brand-mark"></span>{{BRAND_NAME}}</span></div>
+    <div>
+      <p class="eyebrow">AI visibility report · {{MONTH}}</p>
+      <h1>{{CLIENT_NAME}}</h1>
+      <div class="rule"></div>
+      <p class="muted">{{CLIENT_DOMAIN}}<br>Prepared by {{BRAND_NAME}} · {{CONTACT_EMAIL}}</p>
+    </div>
+    <p class="muted" style="font-size:9pt">Confidential. Prepared for {{CLIENT_NAME}}.</p>
+  </div>
+
+  <section>
+    <p class="eyebrow">Summary</p>
+    <p class="summary">AI assistants mentioned {{CLIENT_NAME}} in <b>64%</b> of answers this month, up 12 points. Accuracy improved to <b>88%</b> after we corrected outdated prices. AI assistants sent <b>13 enquiries</b>.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">AI visibility</div><div class="kpi-value num">64%</div><div class="kpi-delta up">▲ 12 pts</div></div>
+      <div class="kpi"><div class="kpi-label">Share of voice</div><div class="kpi-value num">31%</div><div class="kpi-delta up">▲ 6 pts</div></div>
+      <div class="kpi"><div class="kpi-label">AI accuracy</div><div class="kpi-value num">88%</div><div class="kpi-delta up">▲ 21 pts</div></div>
+      <div class="kpi"><div class="kpi-label">Leads from AI</div><div class="kpi-value num">13</div><div class="kpi-delta down">▼ 2</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What AI gets wrong</h2>
+    <div class="stack">
+      <div class="claim"><div class="said">✗ Gemini: "Closed on Saturdays"</div><div class="truth">✓ Open Saturdays, 9am–2pm</div></div>
+      <div class="claim"><div class="said">✗ ChatGPT: "Implants from $5,200"</div><div class="truth">✓ Implants from $2,900</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Visibility by assistant</h2>
+    <table class="table">
+      <thead><tr><th>Assistant</th><th class="num">Mentioned</th><th class="num">Avg. position</th><th class="num">Cited</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT</td><td class="num">72%</td><td class="num">2.1</td><td class="num">40%</td></tr>
+        <tr><td>Perplexity</td><td class="num">58%</td><td class="num">2.8</td><td class="num">55%</td></tr>
+        <tr><td>Gemini</td><td class="num">41%</td><td class="num">3.4</td><td class="num">22%</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Next month</h2>
+    <ol style="padding-left:1.2em" class="stack"><li>Fix the Saturday hours on two directories Gemini cites.</li><li>Publish an "implant cost" guide with current prices.</li><li>Add FAQ schema to the services pages.</li></ol>
+  </section>
+</div>
+</body>
+</html>

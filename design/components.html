@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" data-palette="ink-gold">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design System · Components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3); }
+  .swatch { border: var(--border); border-radius: var(--radius-md); overflow: hidden; font-size: var(--text-xs); background: var(--color-surface); }
+  .swatch div { height: 56px; }
+  .swatch p { margin: 0; padding: var(--space-2) var(--space-3); }
+  .switcher button[aria-pressed="true"] { background: var(--color-ink); color: var(--color-bg); border-color: var(--color-ink); }
+  .spec { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-muted); }
+</style>
+</head>
+<body>
+<div class="container">
+  <nav class="nav"><a class="brand" href="#"><span class="brand-mark"></span>{{BRAND_NAME}}</a>
+    <div class="nav-links"><a href="#color">Colour</a><a href="#type">Type</a><a href="#components">Components</a><a href="#data">Data</a></div></nav>
+
+  <section class="section--tight">
+    <p class="eyebrow">Design system</p>
+    <h1>Premium, minimal, trustworthy.</h1>
+    <p class="muted prose">Every surface (website, dashboard, client portal, reports, emails and marketing) is built from these tokens and components. Pick a palette below to preview it everywhere on this page.</p>
+    <div class="row switcher" role="group" aria-label="Palette">
+      <button class="btn btn--ghost btn--sm" data-p="ink-gold" aria-pressed="true">Ink &amp; Gold</button>
+      <button class="btn btn--ghost btn--sm" data-p="forest-cream" aria-pressed="false">Forest &amp; Cream</button>
+      <button class="btn btn--ghost btn--sm" data-p="charcoal-terracotta" aria-pressed="false">Charcoal &amp; Terracotta</button>
+      <button class="btn btn--ghost btn--sm" data-p="mono-indigo" aria-pressed="false">Monochrome &amp; Indigo</button>
+    </div>
+  </section>
+
+  <section class="section--tight" id="color">
+    <h2>Colour</h2>
+    <div class="swatches">
+      <div class="swatch"><div style="background:var(--color-bg)"></div><p><b>bg</b><br><span class="spec">--color-bg</span></p></div>
+      <div class="swatch"><div style="background:var(--color-surface-alt)"></div><p><b>surface-alt</b><br><span class="spec">--color-surface-alt</span></p></div>
+      <div class="swatch"><div style="background:var(--color-ink)"></div><p><b>ink</b><br><span class="spec">--color-ink</span></p></div>
+      <div class="swatch"><div style="background:var(--color-muted)"></div><p><b>muted</b><br><span class="spec">--color-muted</span></p></div>
+      <div class="swatch"><div style="background:var(--color-line)"></div><p><b>line</b><br><span class="spec">--color-line</span></p></div>
+      <div class="swatch"><div style="background:var(--color-accent)"></div><p><b>accent</b><br><span class="spec">--color-accent</span></p></div>
+      <div class="swatch"><div style="background:var(--color-accent-soft)"></div><p><b>accent-soft</b> (decor only)<br><span class="spec">--color-accent-soft</span></p></div>
+      <div class="swatch"><div style="background:var(--color-accent-tint)"></div><p><b>accent-tint</b><br><span class="spec">--color-accent-tint</span></p></div>
+    </div>
+  </section>
+
+  <section class="section--tight" id="type">
+    <h2>Typography</h2>
+    <p class="spec">Display: Newsreader 500 · Body: Inter 400/500/600 · Numbers: tabular</p>
+    <div class="stack">
+      <div style="font:500 var(--text-display)/1.05 var(--font-display);letter-spacing:-0.02em">Be the answer AI gives.</div>
+      <h1>H1 · Your AI visibility, explained</h1>
+      <h2>H2 · What AI says about you</h2>
+      <h3>H3 · Accuracy by assistant</h3>
+      <h4>H4 · Interface heading in Inter</h4>
+      <p style="font-size:var(--text-lg)" class="prose">Lead paragraph. Your customers now ask AI assistants which business to choose. We make sure you are the answer, and that what it says is true.</p>
+      <p class="prose">Body text. Clear, plain sentences under 25 words. One idea per paragraph, written for a busy business owner rather than a marketer.</p>
+      <p class="eyebrow">Eyebrow label</p>
+    </div>
+  </section>
+
+  <section class="section--tight" id="components">
+    <h2>Components</h2>
+    <h4>Buttons</h4>
+    <div class="row" style="margin-bottom:var(--space-6)">
+      <a class="btn btn--lg" href="#">Book a call</a>
+      <a class="btn btn--accent" href="#">Run free check</a>
+      <a class="btn btn--ghost" href="#">See pricing</a>
+      <a class="btn btn--sm" href="#">Small</a>
+      <a class="link-arrow" href="#">Read the report</a>
+    </div>
+
+    <h4>Badges</h4>
+    <div class="row" style="margin-bottom:var(--space-6)">
+      <span class="badge badge--good">Correct</span><span class="badge badge--warn">Partly correct</span>
+      <span class="badge badge--bad">Wrong</span><span class="badge">AI doesn't know</span><span class="badge badge--accent">ChatGPT</span>
+    </div>
+
+    <div class="grid" style="margin-bottom:var(--space-6)">
+      <div class="card">
+        <h4>Form</h4>
+        <label class="field"><span class="label">Your website</span><input class="input" placeholder="yourbusiness.com"></label>
+        <label class="field"><span class="label">Email</span><input class="input" type="email" placeholder="you@business.com"><span class="help">We'll send your results here.</span></label>
+        <button class="btn btn--accent">Run my free check</button>
+      </div>
+      <div class="card">
+        <h4>Callouts</h4>
+        <div class="stack">
+          <div class="callout"><b>Insight.</b> Perplexity cites your pricing page more than any other source.</div>
+          <div class="callout callout--bad"><b>Wrong fact found.</b> Gemini lists you as closed on Saturdays.</div>
+          <div class="callout callout--good"><b>Fixed.</b> ChatGPT now states your current prices.</div>
+        </div>
+      </div>
+    </div>
+
+    <h4>Claim vs truth</h4>
+    <div class="claim" style="margin-bottom:var(--space-6)"><div class="said">✗ "Cleaning costs $453"</div><div class="truth">✓ Cleaning costs $120</div></div>
+
+    <h4>Features (marketing)</h4>
+    <div class="grid" style="margin-bottom:var(--space-6)">
+      <div class="card--feature"><h3>Cited</h3><p class="muted">Recommended by AI for the questions your buyers really ask.</p></div>
+      <div class="card--feature"><h3>Correct</h3><p class="muted">What AI says about your prices, hours and services is true.</p></div>
+      <div class="card--feature"><h3>Converting</h3><p class="muted">AI visitors land on pages that turn them into customers.</p></div>
+      <div class="card--feature"><h3>Proven</h3><p class="muted">Every month you see the leads and revenue AI sent you.</p></div>
+    </div>
+  </section>
+
+  <section class="section--tight" id="data">
+    <h2>Data</h2>
+    <div class="grid" style="margin-bottom:var(--space-6)">
+      <div class="kpi"><div class="kpi-label">AI visibility</div><div class="kpi-value num">64%</div><div class="kpi-delta up">▲ 12 pts vs last month</div></div>
+      <div class="kpi"><div class="kpi-label">AI Accuracy Score</div><div class="kpi-value num">88%</div><div class="kpi-delta up">▲ 21 pts</div></div>
+      <div class="kpi"><div class="kpi-label">Leads from AI</div><div class="kpi-value num">13</div><div class="kpi-delta down">▼ 2</div></div>
+      <div class="kpi"><div class="kpi-label">Revenue from AI</div><div class="kpi-value num">$3,400</div><div class="kpi-delta muted">entered by client</div></div>
+    </div>
+    <div class="card">
+      <table class="table">
+        <thead><tr><th>AI assistant</th><th class="num">Visits</th><th class="num">Leads</th><th>Visibility</th></tr></thead>
+        <tbody>
+          <tr><td>ChatGPT</td><td class="num">35</td><td class="num">5</td><td><div class="bar"><span style="width:72%"></span></div></td></tr>
+          <tr><td>Perplexity</td><td class="num">29</td><td class="num">4</td><td><div class="bar"><span style="width:58%"></span></div></td></tr>
+          <tr><td>Gemini</td><td class="num">12</td><td class="num">3</td><td><div class="bar"><span style="width:41%"></span></div></td></tr>
+          <tr><td>Claude</td><td class="num">9</td><td class="num">0</td><td><div class="bar"><span class="quiet" style="width:30%"></span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<script>
+  // Preview only: switches the palette for this page.
+  document.querySelectorAll('.switcher button').forEach(b => b.addEventListener('click', () => {
+    document.documentElement.dataset.palette = b.dataset.p;
+    document.querySelectorAll('.switcher button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  }));
+  const p = new URLSearchParams(location.search).get('palette');
+  if (p) { const b = document.querySelector(`.switcher button[data-p="${p}"]`); if (b) b.click(); }
+</script>
+</body>
+</html>

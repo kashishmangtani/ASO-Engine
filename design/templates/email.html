@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- Email template (monthly report / alerts). Email clients don't support CSS variables or
+     external stylesheets, so the active palette's hex values are written inline.
+     Current palette: ink-gold. To switch, replace these 6 values everywhere:
+       bg #FAF8F3 · surface #FFFFFF · ink #121826 · muted #5E6472 · line #E6E1D6 · accent #8C6A2F
+     Fonts: Georgia (headings) and Arial (body) as safe fallbacks for Newsreader/Inter. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your AI visibility report · {{MONTH}}</title>
+</head>
+<body style="margin:0;padding:0;background:#FAF8F3;">
+<div style="display:none;max-height:0;overflow:hidden;">AI visibility 64% (+12 pts), 13 leads from AI this month.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAF8F3;">
+  <tr><td align="center" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;">
+      <tr><td style="padding:28px 32px 0;font:500 18px Georgia,serif;color:#121826;">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#8C6A2F;margin-right:8px;vertical-align:middle;"></span>{{BRAND_NAME}}
+      </td></tr>
+      <tr><td style="padding:28px 32px 8px;">
+        <p style="margin:0 0 8px;font:600 11px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;color:#8C6A2F;">{{MONTH}} report</p>
+        <h1 style="margin:0 0 16px;font:500 28px/1.2 Georgia,serif;color:#121826;">Hi {{FIRST_NAME}}, here's how AI talked about {{CLIENT_NAME}}.</h1>
+        <p style="margin:0 0 24px;font:400 16px/1.6 Arial,sans-serif;color:#5E6472;">AI assistants mentioned you in 64% of answers, up 12 points. We corrected two wrong prices, and AI sent you 13 enquiries.</p>
+      </td></tr>
+      <tr><td style="padding:0 32px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E6E1D6;border-bottom:1px solid #E6E1D6;">
+          <tr>
+            <td style="padding:16px 0;font:400 12px Arial,sans-serif;color:#5E6472;">AI visibility<br><span style="font:500 26px Georgia,serif;color:#121826;">64%</span></td>
+            <td style="padding:16px 0;font:400 12px Arial,sans-serif;color:#5E6472;">AI accuracy<br><span style="font:500 26px Georgia,serif;color:#121826;">88%</span></td>
+            <td style="padding:16px 0;font:400 12px Arial,sans-serif;color:#5E6472;">Leads from AI<br><span style="font:500 26px Georgia,serif;color:#121826;">13</span></td>
+          </tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:28px 32px;">
+        <a href="{{PORTAL_URL}}" style="display:inline-block;background:#121826;color:#FAF8F3;font:500 15px Arial,sans-serif;text-decoration:none;padding:14px 24px;border-radius:8px;">View your full report</a>
+      </td></tr>
+      <tr><td style="padding:0 32px 28px;font:400 13px/1.6 Arial,sans-serif;color:#5E6472;">
+        Questions? Reply to this email.<br>{{BRAND_NAME}} · {{CONTACT_EMAIL}}
+      </td></tr>
+    </table>
+    <p style="font:400 12px Arial,sans-serif;color:#5E6472;margin:16px 0 0;">You receive this because you are a {{BRAND_NAME}} client. <a href="{{PREFERENCES_URL}}" style="color:#5E6472;">Email preferences</a></p>
+  </td></tr>
+</table>
+</body>
+</html>
